@@ -1,0 +1,15 @@
+# Build output (kept out of OneDrive sync to avoid churn)
+bin/
+obj/
+
+# Visual Studio / user-specific
+*.user
+*.suo
+.vs/
+
+# Rider
+.idea/
+
+# App-generated (regions are per-machine, not source)
+# (regions.json lives in %APPDATA%, not in the repo, but ignore any stray copy)
+regions.json
