@@ -211,14 +211,32 @@ public partial class MagnifierWindow : Window
 
     // ---- click-through (lock) ----
 
+    /// <summary>
+    /// Toggle click-through WITHOUT alpha-layering the window. The shared
+    /// <see cref="IWindowService.SetClickThrough"/> applies WS_EX_LAYERED +
+    /// SetLayeredWindowAttributes(LWA_ALPHA); a DWM live thumbnail does NOT composite onto an
+    /// alpha-layered window, so using it here would leave the lens BLANK. Instead we set
+    /// WS_EX_TRANSPARENT only (hit-test passthrough — the mouse falls through to the game) and
+    /// keep WS_EX_LAYERED cleared, so the window stays an opaque, DWM-composited surface the
+    /// thumbnail can render onto. The rounded / circular edge is a GDI window region
+    /// (SetWindowRgn), independent of window transparency, so the shape survives this path.
+    /// </summary>
     public void ApplyClickThrough(bool on)
     {
         _clickThrough = on;
         if (_selfHwnd == IntPtr.Zero)
             return;
-        _services.Windows.SetClickThrough(_selfHwnd, on);
+
+        long ex = NativeMethods.GetWindowLongEx(_selfHwnd, NativeMethods.GWL_EXSTYLE);
+        ex &= ~NativeMethods.WS_EX_LAYERED;          // never alpha-layered while hosting the thumbnail
+        if (on)
+            ex |= NativeMethods.WS_EX_TRANSPARENT;   // click-through
+        else
+            ex &= ~NativeMethods.WS_EX_TRANSPARENT;
+        NativeMethods.SetWindowLongEx(_selfHwnd, NativeMethods.GWL_EXSTYLE, ex);
+
         Topmost = true;
-        // WS_EX_LAYERED is toggled by click-through; re-assert the shape region afterwards.
+        // An ex-style change can invalidate the frame; re-assert the shape region defensively.
         ApplyRegion();
     }
 

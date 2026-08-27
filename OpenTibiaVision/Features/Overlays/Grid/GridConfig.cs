@@ -2,10 +2,12 @@ namespace OpenTibiaVision.Features.Overlays.GridOverlay;
 
 /// <summary>
 /// Serializable state for the grid overlay. The snapshot rect is the source CLIENT area in
-/// PHYSICAL pixels captured when the grid is pinned (the grid does NOT follow the window after
-/// that — it is a fixed reference). <see cref="GridSize"/> is in PHYSICAL pixels; the overlay
-/// converts it to DIP with the pinned monitor's scale so lines land exactly on physical
-/// multiples at any DPI (the original misaligns at non-100% DPI; this is the fix).
+/// PHYSICAL pixels captured when the grid is pinned; while the overlay is live it LIVE-FOLLOWS the
+/// bound source window and writes the current client rect back into these fields, so the snapshot
+/// always reflects the latest placement (and a later restore re-pins there). <see cref="GridSize"/>
+/// is in PHYSICAL pixels; the overlay converts it to DIP with the current monitor's scale so lines
+/// land exactly on physical multiples at any DPI (the original misaligns at non-100% DPI; this is
+/// the fix).
 /// </summary>
 public sealed class GridConfig
 {
@@ -14,7 +16,8 @@ public sealed class GridConfig
     // Source identity (best-effort re-detect on restore).
     public string SourceTitle { get; set; } = "";
 
-    // Snapshot of the source CLIENT area in physical screen pixels, taken when pinned.
+    // Source CLIENT area in physical screen pixels: seeded when pinned, then kept current by the
+    // overlay's live-follow so it always holds the latest placement.
     public int SnapLeft { get; set; }
     public int SnapTop { get; set; }
     public int SnapWidth { get; set; }

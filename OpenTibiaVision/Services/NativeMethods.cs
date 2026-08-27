@@ -31,6 +31,28 @@ internal static class NativeMethods
     [DllImport("user32.dll")]
     public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
 
+    // ---- DWM cloaking (detect UWP/WinUI placeholder windows) ----
+
+    // dwAttribute for DwmGetWindowAttribute. A non-zero returned value means the window is
+    // DWM-cloaked: still "visible" per IsWindowVisible, but not actually composited on screen.
+    // Modern UWP/WinUI apps back their real frame with cloaked placeholder windows
+    // (ApplicationFrameHost hosts / off-desktop duplicates); those must be filtered out.
+    public const int DWMWA_CLOAKED = 14;
+
+    // Overload returning a DWORD attribute (the cloak state). This is distinct from the
+    // RECT-returning DwmGetWindowAttribute used for extended frame bounds in DwmThumbnail.
+    [DllImport("dwmapi.dll")]
+    public static extern int DwmGetWindowAttribute(IntPtr hwnd, int dwAttribute, out int pvAttribute, int cbAttribute);
+
+    /// <summary>True if the window is DWM-cloaked (an invisible placeholder), false otherwise.</summary>
+    public static bool IsWindowCloaked(IntPtr hWnd)
+    {
+        // On failure DwmGetWindowAttribute returns a non-zero HRESULT; treat as not cloaked.
+        if (DwmGetWindowAttribute(hWnd, DWMWA_CLOAKED, out int cloaked, sizeof(int)) == 0)
+            return cloaked != 0;
+        return false;
+    }
+
     // ---- Geometry ----
 
     [StructLayout(LayoutKind.Sequential)]
@@ -178,7 +200,29 @@ internal static class NativeMethods
     [DllImport("user32.dll")]
     public static extern IntPtr MonitorFromWindow(IntPtr hwnd, int dwFlags);
 
+    [DllImport("user32.dll")]
+    public static extern IntPtr MonitorFromPoint(POINT pt, int dwFlags);
+
     // Shcore: per-monitor DPI. MDT_EFFECTIVE_DPI = 0.
+    public const int MDT_EFFECTIVE_DPI = 0;
+
     [DllImport("shcore.dll")]
     public static extern int GetDpiForMonitor(IntPtr hmonitor, int dpiType, out uint dpiX, out uint dpiY);
+
+    /// <summary>
+    /// DPI scale factor for the monitor a physical point sits on (1.0 == 96 DPI == 100%).
+    /// Mirrors <see cref="GetScaleForWindow"/> but resolves the monitor from a point rather
+    /// than a window. Falls back to 1.0 for an invalid monitor or a failed DPI query.
+    /// </summary>
+    public static double GetScaleForPoint(int physicalX, int physicalY)
+    {
+        IntPtr monitor = MonitorFromPoint(new POINT { X = physicalX, Y = physicalY }, MONITOR_DEFAULTTONEAREST);
+        if (monitor == IntPtr.Zero)
+            return 1.0;
+
+        if (GetDpiForMonitor(monitor, MDT_EFFECTIVE_DPI, out uint dpiX, out uint _) != 0 || dpiX == 0)
+            return 1.0; // 96 DPI == 100%
+
+        return dpiX / 96.0;
+    }
 }

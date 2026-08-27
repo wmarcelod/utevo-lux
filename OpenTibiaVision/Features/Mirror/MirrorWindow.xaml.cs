@@ -348,6 +348,15 @@ public partial class MirrorWindow : Window
                 mx, my, GetHostRectPhysical(), _currentSource, out int sx, out int sy))
             return;
 
+        // Move the physical cursor to the mapped point (in SCREEN px) BEFORE posting: PostMessage
+        // only fills the message's client coords, so a game that reads GetCursorPos / raw input would
+        // otherwise see the cursor still parked over the mirror and mislocate the click. sx/sy are
+        // source-CLIENT physical px; ClientToScreen converts them to physical screen px for SetCursorPos
+        // (both correct under our Per-Monitor-v2 awareness).
+        var screenPt = new NativeMethods.POINT { X = sx, Y = sy };
+        if (NativeMethods.ClientToScreen(_sourceHwnd, ref screenPt))
+            MirrorInterop.SetCursorPos(screenPt.X, screenPt.Y);
+
         IntPtr w = down ? new IntPtr(MirrorInterop.MK_RBUTTON) : IntPtr.Zero;
         MirrorInterop.PostMessageW(_sourceHwnd, message, w, MirrorInterop.MakeLParam(sx, sy));
     }

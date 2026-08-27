@@ -95,11 +95,31 @@ public partial class RegionSelectorOverlay : Window
     {
         base.OnKeyDown(e);
         if (e.Key == Key.Escape)
+            Cancel();
+    }
+
+    protected override void OnMouseRightButtonDown(MouseButtonEventArgs e)
+    {
+        base.OnMouseRightButtonDown(e);
+        // Right-click cancels the selection, so the overlay can be dismissed without the
+        // keyboard (Esc) and without a completed drag.
+        if (_dragging)
         {
-            Result = null;
-            DialogResult = false;
-            Close();
+            _dragging = false;
+            ReleaseMouseCapture();
+            SelectionRect.Visibility = Visibility.Collapsed;
         }
+        e.Handled = true;
+        Cancel();
+    }
+
+    private void CancelButton_Click(object sender, RoutedEventArgs e) => Cancel();
+
+    private void Cancel()
+    {
+        Result = null;
+        DialogResult = false;
+        Close();
     }
 
     private void Finish(Point end)

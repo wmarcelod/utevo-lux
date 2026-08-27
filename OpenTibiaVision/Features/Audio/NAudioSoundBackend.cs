@@ -1,17 +1,15 @@
-// The primary sound backend uses NAudio's WaveOutEvent. NAudio is an EXTERNAL NuGet package
-// that the M1 skeleton does not yet reference, and this module is not allowed to edit the
-// csproj. So this whole file is compiled ONLY when the build defines OTV_NAUDIO. Until
-// integration adds the two lines documented in the module header, the app compiles and runs on
-// MediaPlayerSoundBackend (a fully working fallback) with zero missing symbols.
-//
-// To promote NAudio to the primary backend, integration adds to OpenTibiaVision.csproj:
+// The primary sound backend uses NAudio's WaveOutEvent. NAudio is an EXTERNAL NuGet package that
+// OpenTibiaVision.csproj now references, and integration has enabled it as the PRIMARY backend via:
 //     <ItemGroup>
 //       <PackageReference Include="NAudio" Version="2.2.1" />
 //     </ItemGroup>
 //     <PropertyGroup>
 //       <DefineConstants>$(DefineConstants);OTV_NAUDIO</DefineConstants>
 //     </PropertyGroup>
-// SoundEngine.CreateDefaultBackend() then prefers this class automatically.
+// With the package referenced and OTV_NAUDIO defined, this file compiles and
+// SoundEngine.CreateDefaultBackend() prefers this class automatically. The #if OTV_NAUDIO guard is
+// retained so the tree still builds if the package/define are ever removed, in which case the app
+// falls back to MediaPlayerSoundBackend (a fully working WPF fallback) with zero missing symbols.
 #if OTV_NAUDIO
 using System;
 using NAudio.Wave;

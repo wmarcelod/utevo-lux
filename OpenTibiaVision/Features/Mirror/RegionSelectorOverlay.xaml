@@ -29,7 +29,21 @@
             <TextBlock Foreground="White"
                        FontSize="14"
                        TextAlignment="Center"
-                       Text="Arraste para selecionar a regiao a espelhar (area do jogo).&#x0a;Soltar confirma  -  Esc cancela"/>
+                       Text="Arraste para selecionar a regiao a espelhar (area do jogo).&#x0a;Soltar confirma  -  Clique-direito, botao Cancelar ou Esc cancela"/>
         </Border>
+
+        <Button x:Name="CancelButton"
+                VerticalAlignment="Top"
+                HorizontalAlignment="Right"
+                Margin="0,24,24,0"
+                Content="Cancelar"
+                Foreground="White"
+                Background="#CC202832"
+                BorderBrush="{StaticResource AccentBrush}"
+                BorderThickness="1"
+                Padding="16,8"
+                FontSize="14"
+                Cursor="Arrow"
+                Click="CancelButton_Click"/>
     </Grid>
 </Window>

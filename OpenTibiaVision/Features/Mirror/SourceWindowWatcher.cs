@@ -5,14 +5,23 @@ using System.Windows.Threading;
 namespace OpenTibiaVision.Features.Mirror;
 
 /// <summary>
-/// Watches source windows for show/hide/minimize/restore/destroy and raises a single coalesced
-/// signal ~250 ms after activity settles, so mirrors can auto show/hide bound to their source
-/// (principle 4: prefer SetWinEventHook over polling; layer a debounce over the burst).
+/// Watches source windows for show/hide/minimize/restore/destroy AND every foreground change, and
+/// raises a single coalesced signal ~250 ms after activity settles, so mirrors can auto show/hide
+/// bound to their source (principle 4: prefer SetWinEventHook over polling; layer a debounce over
+/// the burst).
 ///
-/// One process-wide out-of-context WinEvent hook feeds a HashSet of watched HWNDs; unrelated
-/// windows are filtered out cheaply in the callback. The callback arrives on the thread that
-/// installed the hook (the UI thread), so subscribers may touch WPF directly. The debounce timer
-/// runs on that same dispatcher.
+/// Foreground handling is why this is not a pure presence watcher: a mirror must hide when the user
+/// Alt-Tabs to an UNRELATED app even though the source stays visible, and re-show when focus returns
+/// to the source or to one of the fork's OWN windows. Foreground changes ripple globally, so we react
+/// to ALL of them (any hwnd) and let each subscriber decide via <see cref="MirrorInterop.IsSourcePresent"/>;
+/// presence events (minimize/restore/destroy/hide) are still filtered to the watched sources. The
+/// system hook deliberately does NOT skip our own process, so focus landing on the shell / a mirror /
+/// an overlay is delivered too (that is what keeps interacting with our own windows from hiding them,
+/// and lets a hidden mirror re-appear when the fork regains focus).
+///
+/// One process-wide out-of-context WinEvent hook feeds a HashSet of watched HWNDs. The callback
+/// arrives on the thread that installed the hook (the UI thread), so subscribers may touch WPF
+/// directly. The debounce timer runs on that same dispatcher.
 /// </summary>
 public sealed class SourceWindowWatcher : IDisposable
 {
@@ -56,10 +65,13 @@ public sealed class SourceWindowWatcher : IDisposable
     {
         if (_systemHook == IntPtr.Zero)
         {
+            // NOT SKIPOWNPROCESS: we need foreground events for our OWN windows too, so focus
+            // landing on the shell / a mirror / an overlay is re-evaluated (kept visible) instead
+            // of being invisible to the hook.
             _systemHook = MirrorInterop.SetWinEventHook(
                 MirrorInterop.EVENT_SYSTEM_FOREGROUND, MirrorInterop.EVENT_SYSTEM_MINIMIZEEND,
                 IntPtr.Zero, _proc, 0, 0,
-                MirrorInterop.WINEVENT_OUTOFCONTEXT | MirrorInterop.WINEVENT_SKIPOWNPROCESS);
+                MirrorInterop.WINEVENT_OUTOFCONTEXT);
         }
 
         if (_objectHook == IntPtr.Zero)
@@ -93,11 +105,24 @@ public sealed class SourceWindowWatcher : IDisposable
         if (idObject != MirrorInterop.OBJID_WINDOW)
             return;
 
-        // Foreground changes ripple z-order globally; only react to our watched sources.
+        // A foreground change (from ANY window, including our own) may flip a mirror's visibility,
+        // so always re-evaluate; the subscriber's IsSourcePresent decides source vs. own vs. unrelated.
+        if (eventType == MirrorInterop.EVENT_SYSTEM_FOREGROUND)
+        {
+            SignalDebounced();
+            return;
+        }
+
+        // Presence events (minimize/restore/destroy/hide) only matter for the sources we watch.
         if (hwnd == IntPtr.Zero || !_watched.Contains(hwnd))
             return;
 
-        // Coalesce the burst: restart the one-shot debounce.
+        SignalDebounced();
+    }
+
+    /// <summary>Coalesce a burst of events: restart the one-shot debounce.</summary>
+    private void SignalDebounced()
+    {
         _debounce.Stop();
         _debounce.Start();
     }

@@ -58,16 +58,43 @@ public static class WindowFinder
     }
 
     /// <summary>
-    /// Enumerates every visible top-level window that has a non-empty title.
+    /// Enumerates real, user-facing top-level windows: visible, non-empty title, not our own
+    /// windows, not tool windows, not zero-size. Modern UWP/WinUI apps (Win11 Notepad, Settings)
+    /// back their real frame with DWM-cloaked placeholder windows that still report
+    /// IsWindowVisible; those are skipped via DWMWA_CLOAKED so the real window appears exactly
+    /// once instead of being missed or duplicated. Results are de-duplicated by handle and title.
     /// </summary>
     public static List<WindowInfo> ListWindows()
     {
         var windows = new List<WindowInfo>();
+        var seenHandles = new HashSet<IntPtr>();
+        var seenTitles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        uint ownProcessId = (uint)Environment.ProcessId;
 
         NativeMethods.EnumWindows((hWnd, _) =>
         {
             if (!NativeMethods.IsWindowVisible(hWnd))
                 return true; // keep enumerating
+
+            // Skip DWM-cloaked placeholder windows (the invisible ApplicationFrameHost /
+            // off-desktop duplicates behind modern UWP/WinUI apps). The real hosted window
+            // is not cloaked, so it survives this filter.
+            if (NativeMethods.IsWindowCloaked(hWnd))
+                return true;
+
+            // Skip our own windows: the overlay / control UI must never mirror itself.
+            NativeMethods.GetWindowThreadProcessId(hWnd, out uint pid);
+            if (pid == ownProcessId)
+                return true;
+
+            // Skip tool windows (palettes / overlays) — never real source targets.
+            long exStyle = NativeMethods.GetWindowLongEx(hWnd, NativeMethods.GWL_EXSTYLE);
+            if ((exStyle & NativeMethods.WS_EX_TOOLWINDOW) != 0)
+                return true;
+
+            // Skip zero-size windows (message-only / off-screen placeholders).
+            if (!NativeMethods.GetWindowRect(hWnd, out RECT rect) || rect.Width <= 0 || rect.Height <= 0)
+                return true;
 
             int length = NativeMethods.GetWindowTextLengthW(hWnd);
             if (length <= 0)
@@ -80,9 +107,15 @@ public static class WindowFinder
                 return true;
 
             string title = new string(buffer, 0, copied);
-            if (!string.IsNullOrWhiteSpace(title))
-                windows.Add(new WindowInfo(hWnd, title));
+            if (string.IsNullOrWhiteSpace(title))
+                return true;
 
+            // De-duplicate by handle and by title (a single UWP app can surface the same
+            // title through more than one non-cloaked host window).
+            if (!seenHandles.Add(hWnd) || !seenTitles.Add(title))
+                return true;
+
+            windows.Add(new WindowInfo(hWnd, title));
             return true;
         }, IntPtr.Zero);
 

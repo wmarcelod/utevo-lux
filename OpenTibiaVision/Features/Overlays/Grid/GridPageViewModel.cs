@@ -23,6 +23,7 @@ public sealed class GridPageViewModel : ViewModelBase
     private readonly IAppServices _services;
     private readonly GridConfig _config;
     private GridWindow? _window;
+    private IntPtr _sourceHwnd; // bound source; the pinned window live-follows its client rect
 
     private WindowInfo? _selectedSource;
     private string _status = "Pronto.";
@@ -139,6 +140,7 @@ public sealed class GridPageViewModel : ViewModelBase
         _config.SnapHeight = client.Height;
         _config.SourceTitle = SelectedSource?.Title ?? "";
         _config.Visible = true;
+        _sourceHwnd = hwnd; // the overlay live-follows this window's client rect
 
         // Re-pin: recreate the window at the fresh snapshot rect.
         CloseWindow();
@@ -164,7 +166,7 @@ public sealed class GridPageViewModel : ViewModelBase
     private void EnsureWindow()
     {
         if (_window is not null) return;
-        _window = new GridWindow(_services, _config);
+        _window = new GridWindow(_services, _config, _sourceHwnd);
         _window.Closed += OnWindowClosed;
         _window.Show();          // click-through pinned overlay
         _window.Redraw();
@@ -214,6 +216,7 @@ public sealed class GridPageViewModel : ViewModelBase
 
             if (hwnd != IntPtr.Zero)
             {
+                _sourceHwnd = hwnd; // enable live-follow for the restored overlay
                 RECT client = _services.Windows.GetClientBoundsInScreen(hwnd);
                 if (client.Width > 0 && client.Height > 0)
                 {

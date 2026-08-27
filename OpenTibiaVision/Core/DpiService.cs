@@ -29,11 +29,9 @@ public sealed class DpiService : IDpiService
 
     public double GetScaleForPoint(int physicalX, int physicalY)
     {
-        // Cheap path: use the primary/nearest monitor of a synthetic 1x1 window would be
-        // overkill; instead resolve via a monitor handle from a point is not exposed, so we
-        // reuse the nearest-monitor-from-window semantics through a throwaway query is avoided.
-        // In practice callers pass a source HWND; this overload exists for detached geometry.
-        return 1.0; // conservative identity; window-based path is the accurate one.
+        // Resolve the nearest monitor to the point and read its per-monitor-v2 effective DPI,
+        // consistent with GetScaleForWindow. Not cached: points aren't keyed by a stable HWND.
+        return NativeMethods.GetScaleForPoint(physicalX, physicalY);
     }
 
     public void Invalidate(IntPtr hwnd)
