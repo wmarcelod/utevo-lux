@@ -153,6 +153,22 @@ public class MapTileIndex
 
     public static string ResolveTileDirectory()
     {
+        // Prefer the installed Tibia client's own minimap (the player's live, explored map) when the
+        // setting allows and an install is present; otherwise use the bundled snapshot below.
+        try
+        {
+            if (MapSettingsService.Load().UsePlayerMinimap)
+            {
+                string? player = GameMinimapLocator.FindPlayerMinimapDir();
+                if (player != null)
+                    return player;
+            }
+        }
+        catch
+        {
+            // settings/locator failure -> just use the bundled tiles
+        }
+
         string[] array = new string[3]
         {
             Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "minimap"),

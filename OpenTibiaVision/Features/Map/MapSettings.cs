@@ -23,6 +23,13 @@ public class MapSettings
 
     public bool PinsPanelEnabled { get; set; }
 
+    /// <summary>
+    /// Prefer the installed Tibia client's own minimap (the player's explored map) over the bundled
+    /// tiles when a game install is detected. Default on so the map "just works" with the player's
+    /// current map; falls back to the bundled snapshot when no install is found.
+    /// </summary>
+    public bool UsePlayerMinimap { get; set; } = true;
+
     public int HotkeyCode { get; set; }
 
     public int HotkeyModifiers { get; set; }
