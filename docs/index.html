@@ -1,0 +1,312 @@
+<title>Utevo Lux</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Utevo Lux — "light in the dark". Dark-committed by design: it mirrors the app's own dark UI and
+     the game client, and the whole concept is a light spell glowing against black. Every color is
+     painted explicitly so it holds on any host background. */
+  :root{
+    --bg:#080B11; --bg-2:#0B1017; --surface:#121A24; --surface-2:#18222F;
+    --border:#22303F; --border-2:#2C3C4F;
+    --text:#E7EEF5; --text-2:#93A2B4; --muted:#5B6A7C;
+    --accent:#3FA9F5; --accent-bright:#8AD4FF; --accent-deep:#1A6DB2;
+    --glow:rgba(63,169,245,.40); --glow-soft:rgba(63,169,245,.14);
+    --good:#48D18A;
+    --font-display:"Chakra Petch",sans-serif;
+    --font-body:"IBM Plex Sans",system-ui,-apple-system,sans-serif;
+    --font-mono:"IBM Plex Mono",ui-monospace,monospace;
+    --maxw:1140px; --radius:16px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:var(--font-body); font-size:17px; line-height:1.65;
+    -webkit-font-smoothing:antialiased; overflow-x:hidden;
+    background-image:
+      radial-gradient(60rem 40rem at 78% -8%, var(--glow-soft), transparent 60%),
+      radial-gradient(50rem 40rem at 8% 8%, rgba(26,109,178,.10), transparent 55%);
+  }
+  a{color:inherit; text-decoration:none}
+  h1,h2,h3{font-family:var(--font-display); font-weight:600; line-height:1.08; margin:0; text-wrap:balance}
+  .wrap{max-width:var(--maxw); margin:0 auto; padding:0 24px}
+  .eyebrow{font-family:var(--font-mono); font-size:12px; letter-spacing:.22em; text-transform:uppercase; color:var(--accent); margin:0 0 14px}
+
+  /* ---------- header ---------- */
+  header{position:sticky; top:0; z-index:50; backdrop-filter:blur(12px);
+    background:linear-gradient(180deg, rgba(8,11,17,.9), rgba(8,11,17,.55)); border-bottom:1px solid var(--border)}
+  .nav{display:flex; align-items:center; gap:28px; height:66px}
+  .brand{display:flex; align-items:center; gap:11px; font-family:var(--font-display); font-weight:700; font-size:19px; letter-spacing:.01em}
+  .brand .spark{filter:drop-shadow(0 0 8px var(--glow))}
+  .brand b{color:var(--accent)}
+  .nav .links{display:flex; gap:26px; margin-left:auto; font-size:15px; color:var(--text-2)}
+  .nav .links a:hover{color:var(--text)}
+  .nav .cta{margin-left:6px}
+  @media(max-width:720px){ .nav .links{display:none} .nav .cta{margin-left:auto} }
+
+  .btn{display:inline-flex; align-items:center; gap:9px; font-family:var(--font-display); font-weight:600;
+    font-size:15px; padding:11px 20px; border-radius:11px; border:1px solid transparent; cursor:pointer; transition:.18s}
+  .btn-primary{background:linear-gradient(180deg, var(--accent), var(--accent-deep)); color:#05121E;
+    box-shadow:0 6px 22px -6px var(--glow), inset 0 1px 0 rgba(255,255,255,.35)}
+  .btn-primary:hover{transform:translateY(-1px); box-shadow:0 10px 30px -6px var(--glow), inset 0 1px 0 rgba(255,255,255,.4)}
+  .btn-ghost{background:var(--surface); border-color:var(--border-2); color:var(--text)}
+  .btn-ghost:hover{border-color:var(--accent); color:var(--accent-bright)}
+
+  /* ---------- hero ---------- */
+  .hero{padding:74px 0 40px; display:grid; grid-template-columns:1.05fr .95fr; gap:56px; align-items:center}
+  @media(max-width:900px){ .hero{grid-template-columns:1fr; gap:40px; padding-top:48px} }
+  .hero h1{font-size:clamp(40px,6vw,66px); font-weight:700; letter-spacing:-.01em}
+  .hero h1 .lux{color:var(--accent); text-shadow:0 0 34px var(--glow)}
+  .hero p.sub{font-size:20px; color:var(--text-2); margin:20px 0 30px; max-width:34ch}
+  .hero .actions{display:flex; gap:14px; flex-wrap:wrap; align-items:center}
+  .chips{display:flex; gap:10px; flex-wrap:wrap; margin-top:26px; font-family:var(--font-mono); font-size:12.5px; color:var(--text-2)}
+  .chip{display:inline-flex; align-items:center; gap:7px; padding:6px 12px; border:1px solid var(--border); border-radius:999px; background:rgba(18,26,36,.6)}
+  .chip .dot{width:7px; height:7px; border-radius:50%; background:var(--good); box-shadow:0 0 8px var(--good)}
+  .chip .dot.b{background:var(--accent); box-shadow:0 0 8px var(--accent)}
+
+  /* ---------- app window mockup ---------- */
+  .mock{position:relative}
+  .mock-glow{position:absolute; inset:-14% -8% -20% -8%; background:radial-gradient(60% 60% at 60% 30%, var(--glow), transparent 70%); filter:blur(24px); opacity:.6; z-index:0}
+  .window{position:relative; z-index:1; border:1px solid var(--border-2); border-radius:18px; overflow:hidden;
+    background:linear-gradient(180deg,#0C131C,#0A0F16); box-shadow:0 40px 90px -30px #000, 0 0 0 1px rgba(63,169,245,.08)}
+  .titlebar{display:flex; align-items:center; gap:9px; height:40px; padding:0 14px; background:#111823; border-bottom:1px solid var(--border)}
+  .titlebar .tdot{width:10px;height:10px;border-radius:50%;background:#2C3B4D}
+  .titlebar .ttl{font-family:var(--font-display); font-weight:600; font-size:13px; margin-left:6px; color:var(--text-2)}
+  .titlebar .ttl b{color:var(--accent)}
+  .map{position:relative; height:290px; background:
+      radial-gradient(1px 1px at 20% 30%, #2a3a2f 99%, transparent),
+      linear-gradient(180deg,#070B10,#0A1017)}
+  .map svg{position:absolute; inset:0; width:100%; height:100%}
+  .loot{position:absolute; left:14px; bottom:14px; width:216px; background:rgba(13,19,27,.94);
+    border:1px solid var(--border-2); border-radius:12px; padding:10px; backdrop-filter:blur(4px)}
+  .loot .lh{display:flex; align-items:center; gap:8px; margin-bottom:8px}
+  .loot .cre{width:26px;height:26px;border-radius:6px;background:radial-gradient(circle at 40% 35%, #7a3fb0, #3a1c56);box-shadow:0 0 10px rgba(122,63,176,.5)}
+  .loot .cn{font-family:var(--font-display); font-weight:600; font-size:13px}
+  .loot .cs{font-family:var(--font-mono); font-size:10px; color:var(--text-2)}
+  .loot .grid{display:grid; grid-template-columns:repeat(6,1fr); gap:5px}
+  .loot .it{aspect-ratio:1; border-radius:5px; border:1px solid var(--border); background:var(--surface-2)}
+  .loot .it.g{background:radial-gradient(circle at 40% 35%,#ffd873,#b8860b)}
+  .loot .it.r{background:radial-gradient(circle at 40% 35%,#ff6b6b,#7a1f1f)}
+  .loot .it.b{background:radial-gradient(circle at 40% 35%,#6ba8ff,#1f3f7a)}
+
+  /* ---------- sections ---------- */
+  section{padding:70px 0; position:relative}
+  .sec-head{max-width:640px; margin:0 0 44px}
+  .sec-head h2{font-size:clamp(28px,4vw,40px); font-weight:600}
+  .sec-head p{color:var(--text-2); font-size:18px; margin:14px 0 0}
+
+  .features{display:grid; grid-template-columns:repeat(3,1fr); gap:18px}
+  @media(max-width:900px){ .features{grid-template-columns:1fr 1fr} }
+  @media(max-width:600px){ .features{grid-template-columns:1fr} }
+  .card{background:linear-gradient(180deg,var(--surface),var(--bg-2)); border:1px solid var(--border);
+    border-radius:var(--radius); padding:24px; transition:.2s; position:relative; overflow:hidden}
+  .card:hover{border-color:var(--border-2); transform:translateY(-2px)}
+  .card:hover .ic{box-shadow:0 0 24px -4px var(--glow); border-color:var(--accent-deep)}
+  .ic{width:46px; height:46px; border-radius:12px; display:grid; place-items:center; margin-bottom:16px;
+    background:radial-gradient(circle at 35% 30%, #16273a, #0e1720); border:1px solid var(--border-2); transition:.2s}
+  .ic svg{width:22px; height:22px; stroke:var(--accent-bright); fill:none; stroke-width:1.7}
+  .card h3{font-size:19px; font-weight:600; margin-bottom:8px}
+  .card p{color:var(--text-2); font-size:15.5px; margin:0}
+
+  /* ---------- how ---------- */
+  .steps{display:grid; grid-template-columns:repeat(3,1fr); gap:20px; counter-reset:s}
+  @media(max-width:760px){ .steps{grid-template-columns:1fr} }
+  .step{position:relative; padding:26px 22px; border:1px solid var(--border); border-radius:var(--radius); background:var(--bg-2)}
+  .step .num{font-family:var(--font-mono); font-size:13px; color:var(--accent); border:1px solid var(--accent-deep);
+    width:30px;height:30px;border-radius:8px; display:grid; place-items:center; margin-bottom:14px; box-shadow:inset 0 0 12px var(--glow-soft)}
+  .step h3{font-size:18px; margin-bottom:7px}
+  .step p{color:var(--text-2); font-size:15px; margin:0}
+  .step code{font-family:var(--font-mono); font-size:13px; color:var(--accent-bright); background:rgba(63,169,245,.09); padding:2px 6px; border-radius:5px}
+
+  /* ---------- download band ---------- */
+  .band{margin:20px 0 0; border:1px solid var(--border-2); border-radius:22px; padding:52px 40px; text-align:center; position:relative; overflow:hidden;
+    background:linear-gradient(180deg,#0E1721,#0A1119)}
+  .band::before{content:""; position:absolute; inset:auto 0 -60% 0; height:120%; background:radial-gradient(50% 60% at 50% 0%, var(--glow-soft), transparent 70%)}
+  .band > *{position:relative}
+  .band h2{font-size:clamp(28px,4vw,40px)}
+  .band p{color:var(--text-2); margin:14px auto 26px; max-width:46ch}
+  .band .actions{display:flex; gap:14px; justify-content:center; flex-wrap:wrap}
+  .band .meta{font-family:var(--font-mono); font-size:12.5px; color:var(--muted); margin-top:20px}
+
+  /* ---------- footer ---------- */
+  footer{border-top:1px solid var(--border); padding:40px 0; margin-top:70px; color:var(--text-2); font-size:14px}
+  .foot{display:flex; justify-content:space-between; gap:20px; flex-wrap:wrap; align-items:center}
+  .foot a:hover{color:var(--accent-bright)}
+  .foot .disc{font-size:12.5px; color:var(--muted); max-width:52ch}
+
+  @media (prefers-reduced-motion: no-preference){
+    .pulse{animation:pulse 3.2s ease-in-out infinite}
+    @keyframes pulse{0%,100%{opacity:.55} 50%{opacity:1}}
+    .rise{opacity:0; transform:translateY(14px); animation:rise .7s cubic-bezier(.2,.7,.2,1) forwards}
+    @keyframes rise{to{opacity:1; transform:none}}
+  }
+</style>
+
+<header>
+  <div class="wrap nav">
+    <a class="brand" href="#top">
+      <svg class="spark pulse" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M12 2 L13.6 9 L21 10.5 L13.6 12.4 L12 21 L10.4 12.4 L3 10.5 L10.4 9 Z" fill="#3FA9F5"/>
+      </svg>
+      Utevo<b>Lux</b>
+    </a>
+    <nav class="links">
+      <a href="#recursos">Recursos</a>
+      <a href="#como">Como funciona</a>
+      <a href="https://github.com/wmarcelod/utevo-lux" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+    <a class="btn btn-primary cta" href="https://github.com/wmarcelod/utevo-lux/releases/latest/download/UtevoLux-win-x64.zip">Baixar</a>
+  </div>
+</header>
+
+<main id="top">
+  <section class="wrap hero" style="padding-top:64px">
+    <div class="rise">
+      <p class="eyebrow">Overlay + mapa para Tibia · Windows</p>
+      <h1>Espelhe o Tibia.<br>Enxergue o <span class="lux">mapa</span>.</h1>
+      <p class="sub">Um companion leve pro seu client: janelas-espelho de cooldowns e itens, um mapa mundial com spawns ao vivo e loot por criatura — usando o seu próprio minimap.</p>
+      <div class="actions">
+        <a class="btn btn-primary" href="https://github.com/wmarcelod/utevo-lux/releases/latest/download/UtevoLux-win-x64.zip">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#05121E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 21h16"/></svg>
+          Baixar para Windows
+        </a>
+        <a class="btn btn-ghost" href="https://github.com/wmarcelod/utevo-lux" target="_blank" rel="noopener">Ver no GitHub</a>
+      </div>
+      <div class="chips">
+        <span class="chip"><span class="dot"></span>Gratuito e open source</span>
+        <span class="chip"><span class="dot b"></span>Self-contained · sem instalar .NET</span>
+        <span class="chip"><span class="dot b"></span>Não lê a memória do jogo (DWM)</span>
+      </div>
+    </div>
+
+    <div class="mock rise" style="animation-delay:.1s">
+      <div class="mock-glow"></div>
+      <div class="window">
+        <div class="titlebar">
+          <span class="tdot"></span><span class="tdot"></span><span class="tdot"></span>
+          <span class="ttl">Utevo<b>Lux</b> · Mapa</span>
+        </div>
+        <div class="map">
+          <svg viewBox="0 0 480 290" preserveAspectRatio="none" aria-hidden="true">
+            <g stroke="#14202c" stroke-width="1">
+              <path d="M0 60 H480 M0 120 H480 M0 180 H480 M0 240 H480 M80 0 V290 M160 0 V290 M240 0 V290 M320 0 V290 M400 0 V290"/>
+            </g>
+            <g fill="#6b4a2a" opacity=".55"><rect x="60" y="40" width="70" height="46" rx="3"/><rect x="300" y="150" width="90" height="60" rx="3"/><rect x="180" y="90" width="60" height="40" rx="3"/></g>
+            <g fill="#2f6b3a" opacity=".5"><circle cx="410" cy="70" r="20"/><circle cx="120" cy="210" r="16"/></g>
+            <g><circle cx="245" cy="150" r="26" fill="none" stroke="#3FA9F5" stroke-width="2" opacity=".9"/><circle cx="245" cy="150" r="15" fill="#0e2233" stroke="#8AD4FF" stroke-width="2"/><text x="245" y="155" font-size="13" fill="#8AD4FF" text-anchor="middle" font-family="monospace">69</text></g>
+            <g fill="#1f6db2"><circle cx="150" cy="80" r="10"/><circle cx="360" cy="110" r="12"/><circle cx="90" cy="150" r="9"/></g>
+            <g fill="#8AD4FF"><circle cx="150" cy="80" r="3"/><circle cx="360" cy="110" r="3"/><circle cx="90" cy="150" r="3"/></g>
+          </svg>
+          <div class="loot">
+            <div class="lh">
+              <span class="cre"></span>
+              <span><span class="cn">Demon</span><br><span class="cs">13 itens · fonte: TibiaData</span></span>
+            </div>
+            <div class="grid">
+              <span class="it g"></span><span class="it r"></span><span class="it"></span><span class="it b"></span><span class="it g"></span><span class="it"></span>
+              <span class="it"></span><span class="it b"></span><span class="it r"></span><span class="it g"></span><span class="it"></span><span class="it b"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="recursos" class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Recursos</p>
+      <h2>Tudo que você espelha e enxerga</h2>
+      <p>Ferramentas que ficam por cima do jogo, sem tocar no client — só olhando.</p>
+    </div>
+    <div class="features">
+      <div class="card">
+        <div class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="8" height="7" rx="1"/><rect x="13" y="9" width="8" height="11" rx="1"/></svg></div>
+        <h3>Espelhos</h3>
+        <p>Espelhe qualquer parte do client — cooldowns, itens, buffs — em janelas flutuantes e reposicionáveis, via DWM (composição da GPU, sem ler memória).</p>
+      </div>
+      <div class="card">
+        <div class="ic"><svg viewBox="0 0 24 24"><path d="M3 6 9 4 15 6 21 4v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/></svg></div>
+        <h3>Mapa mundial</h3>
+        <p>Mapa completo de 16 andares com busca de criatura e NPC, rotas, pins compartilháveis e leitura de coordenadas.</p>
+      </div>
+      <div class="card">
+        <div class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg></div>
+        <h3>Spawns ao vivo</h3>
+        <p>Pontos de spawn de criatura atualizados do tibiaroute a cada abertura, com cache local pra funcionar offline.</p>
+      </div>
+      <div class="card">
+        <div class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 9l3 3-3 3M13 15h4"/></svg></div>
+        <h3>Painel de loot</h3>
+        <p>Clique numa criatura e veja o loot dela (nomes da TibiaData) com os ícones reais dos itens, extraídos do client atual.</p>
+      </div>
+      <div class="card">
+        <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 21s-7-4.5-7-10a7 7 0 0 1 14 0c0 5.5-7 10-7 10z"/><circle cx="12" cy="11" r="2.4"/></svg></div>
+        <h3>Seu próprio minimap</h3>
+        <p>Se o Tibia estiver instalado, o mapa usa o seu minimap já explorado — o mapa de verdade que você conhece.</p>
+      </div>
+      <div class="card">
+        <div class="ic"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H4z"/><path d="M9 20h6M8 9l2 2-2 2M13 13h3"/></svg></div>
+        <h3>Overlays, OBS & timers</h3>
+        <p>Notas, grade, marcador e brilho do cursor click-through; recortes pra streaming no OBS; barras de countdown com alertas.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="como" class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Como funciona</p>
+      <h2>Do download ao jogo em 30 segundos</h2>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="num">1</div>
+        <h3>Baixe & extraia</h3>
+        <p>Pegue o <code>.zip</code> do GitHub e extraia numa pasta qualquer. Nada de instalador.</p>
+      </div>
+      <div class="step">
+        <div class="num">2</div>
+        <h3>Rode o app</h3>
+        <p>Abra <code>UtevoLux.exe</code>. É self-contained — não precisa ter o .NET instalado.</p>
+      </div>
+      <div class="step">
+        <div class="num">3</div>
+        <h3>Ele acha o Tibia</h3>
+        <p>Detecta sua janela do jogo e o seu minimap automaticamente. Escolha o que espelhar e pronto.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap">
+    <div class="band">
+      <h2>Baixe o Utevo Lux</h2>
+      <p>Windows x64, self-contained. Atualizado direto pelo GitHub — sempre a última versão.</p>
+      <div class="actions">
+        <a class="btn btn-primary" href="https://github.com/wmarcelod/utevo-lux/releases/latest/download/UtevoLux-win-x64.zip">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#05121E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 21h16"/></svg>
+          Baixar .zip
+        </a>
+        <a class="btn btn-ghost" href="https://github.com/wmarcelod/utevo-lux/releases" target="_blank" rel="noopener">Todas as versões</a>
+      </div>
+      <div class="meta">v0.1.0 · ~95 MB · Windows 10/11 64-bit</div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <div>
+      <div class="brand" style="font-size:16px">
+        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 L13.6 9 L21 10.5 L13.6 12.4 L12 21 L10.4 12.4 L3 10.5 L10.4 9 Z" fill="#3FA9F5"/></svg>
+        Utevo<b style="color:var(--accent)">Lux</b>
+      </div>
+      <p class="disc" style="margin:10px 0 0">Projeto independente, sem fins comerciais. Tibia é marca registrada da CipSoft GmbH; Utevo Lux não é afiliado à CipSoft.</p>
+    </div>
+    <div style="display:flex; gap:22px">
+      <a href="https://github.com/wmarcelod/utevo-lux" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://github.com/wmarcelod/utevo-lux/releases" target="_blank" rel="noopener">Releases</a>
+      <a href="#top">Topo</a>
+    </div>
+  </div>
+</footer>
