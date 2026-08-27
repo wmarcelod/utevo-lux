@@ -127,15 +127,9 @@
         </Setter>
     </Style>
 
-    <!-- ComboBox: minimal themed skin -->
-    <Style TargetType="ComboBox">
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
-        <Setter Property="Background" Value="{StaticResource SurfaceAltBrush}"/>
-        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
-        <Setter Property="FontFamily" Value="{StaticResource Font.App}"/>
-        <Setter Property="Padding" Value="8,4"/>
-        <Setter Property="Height" Value="30"/>
-    </Style>
+    <!-- ComboBox is fully templated (dropdown Popup included) in ControlThemes.xaml,
+         which is merged after this dictionary. The earlier minimal skin here only set a few
+         properties and left the dropdown Popup on the light system chrome (white-on-white). -->
 
     <Style TargetType="ScrollViewer">
         <Setter Property="Background" Value="Transparent"/>

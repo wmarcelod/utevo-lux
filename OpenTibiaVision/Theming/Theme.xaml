@@ -7,6 +7,11 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="/Theming/Styles.xaml"/>
+        <!-- Merged AFTER Styles.xaml so the full dark ComboBox template wins over the
+             minimal skin, and so the stock controls that would otherwise fall back to the
+             light system chrome (ContextMenu/MenuItem, Slider, CheckBox, ToolTip, TextBox)
+             get explicit dark templates. -->
+        <ResourceDictionary Source="/Theming/ControlThemes.xaml"/>
         <ResourceDictionary Source="/Theming/Icons.xaml"/>
     </ResourceDictionary.MergedDictionaries>
 </ResourceDictionary>
