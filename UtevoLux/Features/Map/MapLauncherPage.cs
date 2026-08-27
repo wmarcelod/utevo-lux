@@ -15,7 +15,6 @@ namespace UtevoLux.Features.Map;
 public sealed class MapLauncherPage : UserControl
 {
     private readonly Action _openOrFocus;
-    private bool _openedOnce;
 
     public MapLauncherPage(Action openOrFocus)
     {
@@ -108,15 +107,6 @@ public sealed class MapLauncherPage : UserControl
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
             Child = stack
-        };
-
-        // Open the map window the first time this page becomes visible (first navigation).
-        Loaded += (_, _) =>
-        {
-            if (_openedOnce)
-                return;
-            _openedOnce = true;
-            _openOrFocus();
         };
     }
 }
