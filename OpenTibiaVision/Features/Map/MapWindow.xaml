@@ -432,6 +432,48 @@
                     <TextBlock x:Name="CoordReadout" Text="&#x2014;" FontSize="13" FontWeight="Bold"
                                Foreground="{StaticResource TextPrimaryBrush}"/>
                 </Border>
+
+                <!-- Bottom-left: creature loot panel (shown when a creature/boss is picked). Drop
+                     names come from TibiaData; icons from our extracted Resources/items bank. -->
+                <Border x:Name="LootPanel" Visibility="Collapsed"
+                        HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="10,0,0,46"
+                        Width="264" MaxHeight="360"
+                        Background="#EE1B1F27" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+                        CornerRadius="8" Padding="10,8">
+                    <StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Image x:Name="LootCreatureIcon" Grid.Column="0" Width="32" Height="32"
+                                   Margin="0,0,8,0" Stretch="Uniform"
+                                   RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <TextBlock x:Name="LootCreatureName" FontSize="13" FontWeight="Bold"
+                                           Foreground="{StaticResource TextPrimaryBrush}"
+                                           TextTrimming="CharacterEllipsis"/>
+                                <TextBlock x:Name="LootStatus" FontSize="10"
+                                           Foreground="{StaticResource TextSecondaryBrush}"
+                                           TextTrimming="CharacterEllipsis"/>
+                            </StackPanel>
+                            <Button x:Name="LootCloseButton" Grid.Column="2" Style="{StaticResource Button.Icon}"
+                                    Width="24" Height="24" VerticalAlignment="Top"
+                                    ToolTip="Fechar" Click="LootCloseButton_Click">
+                                <Path Width="10" Height="10" Stretch="Uniform"
+                                      Stroke="{StaticResource TextSecondaryBrush}" StrokeThickness="1.6"
+                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                      Data="M0,0 L10,10 M10,0 L0,10"/>
+                            </Button>
+                        </Grid>
+                        <Border Height="1" Background="{StaticResource BorderBrush}" Margin="0,8,0,6"/>
+                        <ScrollViewer MaxHeight="278" VerticalScrollBarVisibility="Auto"
+                                      HorizontalScrollBarVisibility="Disabled">
+                            <WrapPanel x:Name="LootGrid"/>
+                        </ScrollViewer>
+                    </StackPanel>
+                </Border>
             </Grid>
 
             <!-- ============ Bottom bar ============ -->

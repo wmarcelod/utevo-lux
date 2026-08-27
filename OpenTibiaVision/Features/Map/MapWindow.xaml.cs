@@ -63,6 +63,7 @@ public partial class MapWindow : Window
     private bool _suppressSearchChanged;
     private NpcEntry? _rareResult;
     private bool _suppressRareSearchChanged;
+    private System.Threading.CancellationTokenSource? _lootCts;
 
     private Canvas? _spawnClusterHost;
     private Path? _spawnDotBright;
@@ -1490,6 +1491,7 @@ public partial class MapWindow : Window
         RareSearchHint.Visibility = Visibility.Collapsed;
         HideRareResults();
         RefreshMarkers();
+        ShowLootFor(creature.Name);
         await GoToEntry(creature);
     }
 
@@ -1501,6 +1503,7 @@ public partial class MapWindow : Window
 
     private void ClearRareResult(bool clearSearchBox)
     {
+        HideLoot();
         if (clearSearchBox)
         {
             _suppressRareSearchChanged = true;
@@ -1513,6 +1516,118 @@ public partial class MapWindow : Window
             _rareResult = null;
             RefreshMarkers();
         }
+    }
+
+    // --------------------------------------------------------------------- creature loot panel
+    // When a creature (rare boss or spawn) is picked, show its drops: names come from TibiaData
+    // (CreatureLootProvider), each paired with an icon from our extracted Resources/items bank
+    // (ItemSpriteProvider). Fully async + cancelable so rapidly switching creatures cancels the
+    // previous lookup. Never blocks the UI thread and never throws.
+    private async void ShowLootFor(string creatureName)
+    {
+        _lootCts?.Cancel();
+        var cts = new System.Threading.CancellationTokenSource();
+        _lootCts = cts;
+        System.Threading.CancellationToken ct = cts.Token;
+
+        LootCreatureName.Text = creatureName;
+        LootCreatureIcon.Source = SpriteProvider.GetCreature(creatureName);
+        LootGrid.Children.Clear();
+        LootStatus.Text = "carregando loot...";
+        LootPanel.Visibility = Visibility.Visible;
+
+        IReadOnlyList<string>? loot;
+        try
+        {
+            loot = await CreatureLootProvider.Shared.GetLootNamesAsync(creatureName, ct);
+        }
+        catch
+        {
+            loot = null;
+        }
+
+        // A newer pick (or a close) superseded this lookup: drop the stale result.
+        if (ct.IsCancellationRequested || !ReferenceEquals(_lootCts, cts))
+            return;
+
+        if (loot == null)
+        {
+            LootStatus.Text = "loot indisponivel agora (sem conexao?)";
+            return;
+        }
+        if (loot.Count == 0)
+        {
+            LootStatus.Text = "sem loot conhecido na TibiaData";
+            return;
+        }
+
+        int withIcon = 0;
+        foreach (string itemName in loot)
+        {
+            ImageSource? icon = ItemSpriteProvider.GetItem(itemName);
+            if (icon != null)
+                withIcon++;
+            LootGrid.Children.Add(BuildLootCell(itemName, icon));
+        }
+        LootStatus.Text = $"{loot.Count} itens · {withIcon} com icone · fonte: TibiaData";
+    }
+
+    private void HideLoot()
+    {
+        _lootCts?.Cancel();
+        _lootCts = null;
+        if (LootPanel != null)
+        {
+            LootPanel.Visibility = Visibility.Collapsed;
+            LootGrid.Children.Clear();
+        }
+    }
+
+    private void LootCloseButton_Click(object sender, RoutedEventArgs e) => HideLoot();
+
+    /// <summary>An icon cell (drop name in the tooltip), or a small text chip when we lack the icon.</summary>
+    private FrameworkElement BuildLootCell(string itemName, ImageSource? icon)
+    {
+        var cell = new Border
+        {
+            Margin = new Thickness(2),
+            CornerRadius = new CornerRadius(4),
+            Background = (Brush)FindResource("SurfaceAltBrush"),
+            BorderBrush = (Brush)FindResource("BorderBrush"),
+            BorderThickness = new Thickness(1),
+            ToolTip = itemName
+        };
+        if (icon != null)
+        {
+            cell.Width = 40;
+            cell.Height = 40;
+            var img = new Image
+            {
+                Width = 32,
+                Height = 32,
+                Source = icon,
+                Stretch = Stretch.Uniform,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            RenderOptions.SetBitmapScalingMode(img, BitmapScalingMode.NearestNeighbor);
+            cell.Child = img;
+        }
+        else
+        {
+            cell.Height = 22;
+            cell.Padding = new Thickness(6, 2, 6, 2);
+            cell.Child = new TextBlock
+            {
+                Text = itemName,
+                FontSize = 10,
+                MaxWidth = 120,
+                TextTrimming = TextTrimming.CharacterEllipsis,
+                VerticalAlignment = VerticalAlignment.Center,
+                Foreground = (Brush)FindResource("TextSecondaryBrush")
+            };
+        }
+        return cell;
     }
 
     private void FitViewToPositions(IReadOnlyList<NpcPosition> positions) =>

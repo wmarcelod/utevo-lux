@@ -5,6 +5,9 @@ Resources/minimap/
 Resources/creatures/
 Resources/npcs/
 Resources/map/
+# ~8900 item icons (slug .gif|.png) extracted from the current client (tibia-extractor);
+# name->icon bank for the creature loot panel. Content-copied to output, not committed.
+Resources/items/
 # The 20 marker_NN.png pin icons, copied from the installed TibiaVision's
 # Resources/Icons/MapMarkers. Content-copied to output by the Resources/** glob; not committed.
 Resources/Icons/MapMarkers/
