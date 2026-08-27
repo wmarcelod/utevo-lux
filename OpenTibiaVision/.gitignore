@@ -1,0 +1,7 @@
+# TibiaMaps runtime assets — ~3300 binary files copied from the installed TibiaVision
+# (see Resources/README.md). They are build-copied Content (PreserveNewest) that lives in the
+# working dir next to the source; they must NOT be committed. Resources/README.md IS tracked.
+Resources/minimap/
+Resources/creatures/
+Resources/npcs/
+Resources/map/

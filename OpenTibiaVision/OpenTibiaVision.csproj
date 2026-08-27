@@ -40,6 +40,20 @@
     <Resource Include="Assets\**" />
   </ItemGroup>
 
+  <!-- TibiaMaps runtime assets (minimap tiles, creature/npc gifs, monster_spawns.dat + json),
+       copied from the installed TibiaVision into Resources\ (see Resources\README.md). Marked as
+       Content with PreserveNewest so the built app has Resources\minimap etc. next to the exe,
+       matching the original's AppDomain.BaseDirectory\Resources lookup. These ~3300 binary files
+       live in the working dir but are .gitignored; the glob still picks them up at build time.
+       Remove from the default None glob first so the SDK does not report duplicate items. The
+       README stays out of the output copy. -->
+  <ItemGroup>
+    <None Remove="Resources\**" />
+    <Content Include="Resources\**\*" Exclude="Resources\README.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
   <!-- UseWindowsForms + ImplicitUsings would add System.Windows.Forms and System.Drawing as
        GLOBAL usings, which collide with WPF's System.Windows types (Application, MessageBox,
        HorizontalAlignment, Point, ...). Remove them: TrayIcon.cs uses explicit aliases instead.
