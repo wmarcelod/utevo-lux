@@ -59,14 +59,14 @@
   @media(max-width:900px){ .hero{grid-template-columns:1fr; gap:40px; padding-top:48px} }
   .hero h1{font-size:clamp(40px,6vw,66px); font-weight:700; letter-spacing:-.01em}
   .hero h1 .lux{color:var(--accent); text-shadow:0 0 34px var(--glow)}
-  .hero p.sub{font-size:20px; color:var(--text-2); margin:20px 0 30px; max-width:34ch}
+  .hero p.sub{font-size:20px; color:var(--text-2); margin:20px 0 30px; max-width:35ch}
   .hero .actions{display:flex; gap:14px; flex-wrap:wrap; align-items:center}
   .chips{display:flex; gap:10px; flex-wrap:wrap; margin-top:26px; font-family:var(--font-mono); font-size:12.5px; color:var(--text-2)}
   .chip{display:inline-flex; align-items:center; gap:7px; padding:6px 12px; border:1px solid var(--border); border-radius:999px; background:rgba(18,26,36,.6)}
   .chip .dot{width:7px; height:7px; border-radius:50%; background:var(--good); box-shadow:0 0 8px var(--good)}
   .chip .dot.b{background:var(--accent); box-shadow:0 0 8px var(--accent)}
 
-  /* ---------- app window mockup ---------- */
+  /* ---------- app window / floating mirrors mockup ---------- */
   .mock{position:relative}
   .mock-glow{position:absolute; inset:-14% -8% -20% -8%; background:radial-gradient(60% 60% at 60% 30%, var(--glow), transparent 70%); filter:blur(24px); opacity:.6; z-index:0}
   .window{position:relative; z-index:1; border:1px solid var(--border-2); border-radius:18px; overflow:hidden;
@@ -75,21 +75,31 @@
   .titlebar .tdot{width:10px;height:10px;border-radius:50%;background:#2C3B4D}
   .titlebar .ttl{font-family:var(--font-display); font-weight:600; font-size:13px; margin-left:6px; color:var(--text-2)}
   .titlebar .ttl b{color:var(--accent)}
-  .map{position:relative; height:290px; background:
-      radial-gradient(1px 1px at 20% 30%, #2a3a2f 99%, transparent),
-      linear-gradient(180deg,#070B10,#0A1017)}
-  .map svg{position:absolute; inset:0; width:100%; height:100%}
-  .loot{position:absolute; left:14px; bottom:14px; width:216px; background:rgba(13,19,27,.94);
-    border:1px solid var(--border-2); border-radius:12px; padding:10px; backdrop-filter:blur(4px)}
-  .loot .lh{display:flex; align-items:center; gap:8px; margin-bottom:8px}
-  .loot .cre{width:26px;height:26px;border-radius:6px;background:radial-gradient(circle at 40% 35%, #7a3fb0, #3a1c56);box-shadow:0 0 10px rgba(122,63,176,.5)}
-  .loot .cn{font-family:var(--font-display); font-weight:600; font-size:13px}
-  .loot .cs{font-family:var(--font-mono); font-size:10px; color:var(--text-2)}
-  .loot .grid{display:grid; grid-template-columns:repeat(6,1fr); gap:5px}
-  .loot .it{aspect-ratio:1; border-radius:5px; border:1px solid var(--border); background:var(--surface-2)}
-  .loot .it.g{background:radial-gradient(circle at 40% 35%,#ffd873,#b8860b)}
-  .loot .it.r{background:radial-gradient(circle at 40% 35%,#ff6b6b,#7a1f1f)}
-  .loot .it.b{background:radial-gradient(circle at 40% 35%,#6ba8ff,#1f3f7a)}
+  .scene{position:relative; height:322px; overflow:hidden;
+    background:
+      radial-gradient(75% 90% at 32% 18%, #101c2a, transparent 60%),
+      repeating-linear-gradient(118deg, #0a1017 0 24px, #0b1219 24px 48px)}
+  .mwin{position:absolute; background:linear-gradient(180deg,#0f1723,#0b111a); border:1px solid var(--border-2);
+    border-radius:11px; box-shadow:0 22px 50px -16px #000, 0 0 0 1px rgba(63,169,245,.06)}
+  .mbar{display:flex; align-items:center; gap:5px; font-family:var(--font-mono); font-size:10.5px; color:var(--text-2);
+    padding:6px 10px; border-bottom:1px solid var(--border)}
+  .mbar span{width:6px;height:6px;border-radius:50%;background:#2b3a4c}
+  .mbar span:first-child{background:var(--accent);box-shadow:0 0 6px var(--accent)}
+  .mwin.cd{left:6%; top:11%; width:214px}
+  .cds{display:flex; gap:6px; padding:11px}
+  .cds i{width:29px;height:29px;border-radius:6px;background:var(--surface-2);border:1px solid var(--border); position:relative}
+  .cds i.lit{background:radial-gradient(circle at 40% 32%, #2a5a8a, #12283c); border-color:var(--accent-deep); box-shadow:0 0 12px -2px var(--glow)}
+  .cds i.lit::after{content:"";position:absolute;inset:0;border-radius:6px;box-shadow:inset 0 0 0 1px rgba(138,212,255,.45)}
+  .mwin.items{right:5.5%; top:28%; width:168px}
+  .irow{display:flex; gap:6px; padding:11px}
+  .irow b{width:30px;height:30px;border-radius:6px;background:var(--surface-2);border:1px solid var(--border)}
+  .irow b.g{background:radial-gradient(circle at 40% 32%,#ffd873,#b8860b)}
+  .irow b.b{background:radial-gradient(circle at 40% 32%,#6ba8ff,#1f3f7a)}
+  .irow b.r{background:radial-gradient(circle at 40% 32%,#ff6b6b,#7a1f1f)}
+  .mwin.timer{left:15%; bottom:12%; width:236px; padding:0 0 11px}
+  .tlabel{font-family:var(--font-mono); font-size:11px; color:var(--text-2); padding:9px 12px 8px}
+  .tbar{height:8px;border-radius:5px;background:#0c1420;border:1px solid var(--border); overflow:hidden; margin:0 12px}
+  .tbar i{display:block;height:100%;width:62%;background:linear-gradient(90deg,var(--accent-deep),var(--accent-bright));box-shadow:0 0 10px var(--glow)}
 
   /* ---------- sections ---------- */
   section{padding:70px 0; position:relative}
@@ -102,6 +112,9 @@
   @media(max-width:600px){ .features{grid-template-columns:1fr} }
   .card{background:linear-gradient(180deg,var(--surface),var(--bg-2)); border:1px solid var(--border);
     border-radius:var(--radius); padding:24px; transition:.2s; position:relative; overflow:hidden}
+  .card.wide{grid-column:span 3}
+  @media(max-width:900px){ .card.wide{grid-column:span 2} }
+  @media(max-width:600px){ .card.wide{grid-column:span 1} }
   .card:hover{border-color:var(--border-2); transform:translateY(-2px)}
   .card:hover .ic{box-shadow:0 0 24px -4px var(--glow); border-color:var(--accent-deep)}
   .ic{width:46px; height:46px; border-radius:12px; display:grid; place-items:center; margin-bottom:16px;
@@ -111,7 +124,7 @@
   .card p{color:var(--text-2); font-size:15.5px; margin:0}
 
   /* ---------- how ---------- */
-  .steps{display:grid; grid-template-columns:repeat(3,1fr); gap:20px; counter-reset:s}
+  .steps{display:grid; grid-template-columns:repeat(3,1fr); gap:20px}
   @media(max-width:760px){ .steps{grid-template-columns:1fr} }
   .step{position:relative; padding:26px 22px; border:1px solid var(--border); border-radius:var(--radius); background:var(--bg-2)}
   .step .num{font-family:var(--font-mono); font-size:13px; color:var(--accent); border:1px solid var(--accent-deep);
@@ -141,6 +154,9 @@
     @keyframes pulse{0%,100%{opacity:.55} 50%{opacity:1}}
     .rise{opacity:0; transform:translateY(14px); animation:rise .7s cubic-bezier(.2,.7,.2,1) forwards}
     @keyframes rise{to{opacity:1; transform:none}}
+    .cds i.lit{animation:flick 2.6s ease-in-out infinite}
+    .cds i.lit:nth-child(2){animation-delay:.5s} .cds i.lit:nth-child(4){animation-delay:1s} .cds i.lit:nth-child(6){animation-delay:1.4s}
+    @keyframes flick{0%,100%{box-shadow:0 0 12px -2px var(--glow)} 50%{box-shadow:0 0 20px 0 var(--glow)}}
   }
 </style>
 
@@ -164,9 +180,9 @@
 <main id="top">
   <section class="wrap hero" style="padding-top:64px">
     <div class="rise">
-      <p class="eyebrow">Overlay + mapa para Tibia · Windows</p>
-      <h1>Espelhe o Tibia.<br>Enxergue o <span class="lux">mapa</span>.</h1>
-      <p class="sub">Um companion leve pro seu client: janelas-espelho de cooldowns e itens, um mapa mundial com spawns ao vivo e loot por criatura — usando o seu próprio minimap.</p>
+      <p class="eyebrow">Overlay para Tibia · Windows</p>
+      <h1>Espelhe o Tibia.<br>Sempre à <span class="lux">vista</span>.</h1>
+      <p class="sub">Janelas-espelho flutuantes que mostram os cooldowns, itens e buffs do seu client — reposicione onde quiser, por cima do jogo. Sem ler a memória.</p>
       <div class="actions">
         <a class="btn btn-primary" href="https://github.com/wmarcelod/utevo-lux/releases/latest/download/UtevoLux-win-x64.zip">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#05121E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 21h16"/></svg>
@@ -186,28 +202,20 @@
       <div class="window">
         <div class="titlebar">
           <span class="tdot"></span><span class="tdot"></span><span class="tdot"></span>
-          <span class="ttl">Utevo<b>Lux</b> · Mapa</span>
+          <span class="ttl">Utevo<b>Lux</b> · Espelhos</span>
         </div>
-        <div class="map">
-          <svg viewBox="0 0 480 290" preserveAspectRatio="none" aria-hidden="true">
-            <g stroke="#14202c" stroke-width="1">
-              <path d="M0 60 H480 M0 120 H480 M0 180 H480 M0 240 H480 M80 0 V290 M160 0 V290 M240 0 V290 M320 0 V290 M400 0 V290"/>
-            </g>
-            <g fill="#6b4a2a" opacity=".55"><rect x="60" y="40" width="70" height="46" rx="3"/><rect x="300" y="150" width="90" height="60" rx="3"/><rect x="180" y="90" width="60" height="40" rx="3"/></g>
-            <g fill="#2f6b3a" opacity=".5"><circle cx="410" cy="70" r="20"/><circle cx="120" cy="210" r="16"/></g>
-            <g><circle cx="245" cy="150" r="26" fill="none" stroke="#3FA9F5" stroke-width="2" opacity=".9"/><circle cx="245" cy="150" r="15" fill="#0e2233" stroke="#8AD4FF" stroke-width="2"/><text x="245" y="155" font-size="13" fill="#8AD4FF" text-anchor="middle" font-family="monospace">69</text></g>
-            <g fill="#1f6db2"><circle cx="150" cy="80" r="10"/><circle cx="360" cy="110" r="12"/><circle cx="90" cy="150" r="9"/></g>
-            <g fill="#8AD4FF"><circle cx="150" cy="80" r="3"/><circle cx="360" cy="110" r="3"/><circle cx="90" cy="150" r="3"/></g>
-          </svg>
-          <div class="loot">
-            <div class="lh">
-              <span class="cre"></span>
-              <span><span class="cn">Demon</span><br><span class="cs">13 itens · fonte: TibiaData</span></span>
-            </div>
-            <div class="grid">
-              <span class="it g"></span><span class="it r"></span><span class="it"></span><span class="it b"></span><span class="it g"></span><span class="it"></span>
-              <span class="it"></span><span class="it b"></span><span class="it r"></span><span class="it g"></span><span class="it"></span><span class="it b"></span>
-            </div>
+        <div class="scene">
+          <div class="mwin cd">
+            <div class="mbar"><span></span><span></span><span></span>Cooldowns</div>
+            <div class="cds"><i class="lit"></i><i class="lit"></i><i></i><i class="lit"></i><i></i><i class="lit"></i></div>
+          </div>
+          <div class="mwin items">
+            <div class="mbar"><span></span><span></span><span></span>Itens</div>
+            <div class="irow"><b class="g"></b><b class="b"></b><b></b><b class="r"></b></div>
+          </div>
+          <div class="mwin timer">
+            <div class="tlabel">Recarga · 2.4s</div>
+            <div class="tbar"><i></i></div>
           </div>
         </div>
       </div>
@@ -217,39 +225,39 @@
   <section id="recursos" class="wrap">
     <div class="sec-head">
       <p class="eyebrow">Recursos</p>
-      <h2>Tudo que você espelha e enxerga</h2>
-      <p>Ferramentas que ficam por cima do jogo, sem tocar no client — só olhando.</p>
+      <h2>Espelhe, marque e cronometre — por cima do jogo</h2>
+      <p>Tudo fica flutuando sobre o Tibia, sem tocar no client. É só olhar.</p>
     </div>
     <div class="features">
-      <div class="card">
+      <div class="card wide">
         <div class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="8" height="7" rx="1"/><rect x="13" y="9" width="8" height="11" rx="1"/></svg></div>
-        <h3>Espelhos</h3>
-        <p>Espelhe qualquer parte do client — cooldowns, itens, buffs — em janelas flutuantes e reposicionáveis, via DWM (composição da GPU, sem ler memória).</p>
+        <h3>Espelhos — o coração do Utevo Lux</h3>
+        <p>Recorte qualquer parte do seu client — barra de spells, cooldowns, itens, buffs — e espelhe em janelas flutuantes que você reposiciona, redimensiona e trava onde quiser. Feito com a DWM Thumbnail API (composição da GPU): é um espelho ao vivo, não um print e sem ler a memória do jogo. Vários espelhos ao mesmo tempo, sempre no topo.</p>
+      </div>
+      <div class="card">
+        <div class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></svg></div>
+        <h3>Timers & alertas</h3>
+        <p>Barras de countdown por espelho e alertas de áudio pra recargas, spawns e eventos — nunca perca o tempo de uma habilidade.</p>
+      </div>
+      <div class="card">
+        <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3 3 8l9 5 9-5z"/><path d="M3 13l9 5 9-5M3 18l9 5 9-5"/></svg></div>
+        <h3>Overlays no jogo</h3>
+        <p>Notas, grade, marcador e brilho do cursor — click-through, por cima do Tibia. Ótimo pra lembretes de hunt e destacar o cursor.</p>
+      </div>
+      <div class="card">
+        <div class="ic"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg></div>
+        <h3>Lupa</h3>
+        <p>Uma lupa que segue o cursor ou uma região fixa ampliada — leia detalhes pequenos do client sem forçar a vista.</p>
+      </div>
+      <div class="card">
+        <div class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M9 20h6M8 9l2 2-2 2M13 13h3"/></svg></div>
+        <h3>Ferramentas OBS</h3>
+        <p>Recorte áreas do projetor do OBS pra montar uma cena de stream limpa, mostrando só o que importa da sua tela.</p>
       </div>
       <div class="card">
         <div class="ic"><svg viewBox="0 0 24 24"><path d="M3 6 9 4 15 6 21 4v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/></svg></div>
         <h3>Mapa mundial</h3>
-        <p>Mapa completo de 16 andares com busca de criatura e NPC, rotas, pins compartilháveis e leitura de coordenadas.</p>
-      </div>
-      <div class="card">
-        <div class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg></div>
-        <h3>Spawns ao vivo</h3>
-        <p>Pontos de spawn de criatura atualizados do tibiaroute a cada abertura, com cache local pra funcionar offline.</p>
-      </div>
-      <div class="card">
-        <div class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 9l3 3-3 3M13 15h4"/></svg></div>
-        <h3>Painel de loot</h3>
-        <p>Clique numa criatura e veja o loot dela (nomes da TibiaData) com os ícones reais dos itens, extraídos do client atual.</p>
-      </div>
-      <div class="card">
-        <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 21s-7-4.5-7-10a7 7 0 0 1 14 0c0 5.5-7 10-7 10z"/><circle cx="12" cy="11" r="2.4"/></svg></div>
-        <h3>Seu próprio minimap</h3>
-        <p>Se o Tibia estiver instalado, o mapa usa o seu minimap já explorado — o mapa de verdade que você conhece.</p>
-      </div>
-      <div class="card">
-        <div class="ic"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H4z"/><path d="M9 20h6M8 9l2 2-2 2M13 13h3"/></svg></div>
-        <h3>Overlays, OBS & timers</h3>
-        <p>Notas, grade, marcador e brilho do cursor click-through; recortes pra streaming no OBS; barras de countdown com alertas.</p>
+        <p>De bônus, um mapa completo com busca de criatura/NPC, spawns e loot — usando o minimap que você já explorou no seu Tibia.</p>
       </div>
     </div>
   </section>
@@ -272,8 +280,8 @@
       </div>
       <div class="step">
         <div class="num">3</div>
-        <h3>Ele acha o Tibia</h3>
-        <p>Detecta sua janela do jogo e o seu minimap automaticamente. Escolha o que espelhar e pronto.</p>
+        <h3>Espelhe o que quiser</h3>
+        <p>Detecta sua janela do Tibia; escolha as regiões pra espelhar e posicione onde ficar melhor.</p>
       </div>
     </div>
   </section>
