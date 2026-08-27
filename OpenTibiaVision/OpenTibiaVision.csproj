@@ -17,6 +17,10 @@
     <!-- PerMonitorV2 DPI awareness declared in app.manifest so GetDpiForWindow and the
          DWM thumbnail rect math stay consistent across mixed-DPI monitors. -->
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- Distinct OpenTibiaVision exe icon (blue location/GPS glyph), NOT the original TibiaVision
+         icon. Embedded into the exe so Explorer/taskbar show the fork's own identity; the WPF
+         window/tray icon is the same Assets/icon.ico loaded in App.xaml.cs. -->
+    <ApplicationIcon>Assets\icon.ico</ApplicationIcon>
     <!-- WFAC010: the WinForms analyzer wants DPI set via ApplicationHighDpiMode. This is a WPF
          app whose PerMonitorV2 awareness is (correctly) declared in app.manifest; WinForms is
          only referenced for the tray icon. Suppress the WinForms-specific advice. -->
