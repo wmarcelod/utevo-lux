@@ -16,7 +16,7 @@
     <AssemblyName>UtevoLux</AssemblyName>
     <!-- Product version; the in-app updater (Services/UpdateService.cs) compares this to the latest
          GitHub release tag. Bump this per release. -->
-    <Version>0.1.0</Version>
+    <Version>0.1.1</Version>
     <!-- PerMonitorV2 DPI awareness declared in app.manifest so GetDpiForWindow and the
          DWM thumbnail rect math stay consistent across mixed-DPI monitors. -->
     <ApplicationManifest>app.manifest</ApplicationManifest>

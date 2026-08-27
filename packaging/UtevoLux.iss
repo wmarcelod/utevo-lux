@@ -1,6 +1,6 @@
 ; Inno Setup script for Utevo Lux — per-user install (no admin prompt), Start Menu + uninstaller.
 #define MyAppName "Utevo Lux"
-#define MyAppVersion "0.1.0"
+#define MyAppVersion "0.1.1"
 #define MyAppPublisher "wmarcelod"
 #define MyAppURL "https://github.com/wmarcelod/utevo-lux"
 #define MyAppExeName "UtevoLux.exe"
