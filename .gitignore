@@ -13,3 +13,6 @@ obj/
 # App-generated (regions are per-machine, not source)
 # (regions.json lives in %APPDATA%, not in the repo, but ignore any stray copy)
 regions.json
+
+# Claude Code worktrees / session data
+.claude/

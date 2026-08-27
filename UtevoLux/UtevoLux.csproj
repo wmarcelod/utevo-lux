@@ -1,0 +1,70 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <!-- net8.0-windows: the WindowsDesktop 8.0.22 targeting pack is installed on this
+         machine. If that pack were missing, switch this to net10.0-windows (SDK 10 has it). -->
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <!-- WinForms is enabled ONLY for System.Windows.Forms.NotifyIcon (system tray). WPF has no
+         native tray icon; NotifyIcon coexists with the WPF dispatcher message loop. -->
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>UtevoLux</RootNamespace>
+    <AssemblyName>UtevoLux</AssemblyName>
+    <!-- PerMonitorV2 DPI awareness declared in app.manifest so GetDpiForWindow and the
+         DWM thumbnail rect math stay consistent across mixed-DPI monitors. -->
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- Distinct UtevoLux exe icon (blue location/GPS glyph), NOT the original TibiaVision
+         icon. Embedded into the exe so Explorer/taskbar show the fork's own identity; the WPF
+         window/tray icon is the same Assets/icon.ico loaded in App.xaml.cs. -->
+    <ApplicationIcon>Assets\icon.ico</ApplicationIcon>
+    <!-- WFAC010: the WinForms analyzer wants DPI set via ApplicationHighDpiMode. This is a WPF
+         app whose PerMonitorV2 awareness is (correctly) declared in app.manifest; WinForms is
+         only referenced for the tray icon. Suppress the WinForms-specific advice. -->
+    <NoWarn>$(NoWarn);WFAC010</NoWarn>
+    <!-- Promote the NAudio sound backend (Features/Audio/NAudioSoundBackend.cs, gated on
+         OTV_NAUDIO) to primary. Without this the app runs on the WPF MediaPlayer fallback;
+         SoundEngine.CreateDefaultBackend() prefers NAudio and falls back on any failure. -->
+    <DefineConstants>$(DefineConstants);OTV_NAUDIO</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NAudio" Version="2.2.1" />
+  </ItemGroup>
+
+  <!-- Bundled image assets copied from the original TibiaVision (icon.ico, splash_logo.png,
+       tibia48.png). Embedded as WPF <Resource> so they resolve via
+       pack://application:,,,/Assets/<name>. Remove from the default None glob first so the
+       SDK does not report duplicate items. -->
+  <ItemGroup>
+    <None Remove="Assets\**" />
+    <Resource Include="Assets\**" />
+  </ItemGroup>
+
+  <!-- TibiaMaps runtime assets (minimap tiles, creature/npc gifs, monster_spawns.dat + json),
+       copied from the installed TibiaVision into Resources\ (see Resources\README.md). Marked as
+       Content with PreserveNewest so the built app has Resources\minimap etc. next to the exe,
+       matching the original's AppDomain.BaseDirectory\Resources lookup. These ~3300 binary files
+       live in the working dir but are .gitignored; the glob still picks them up at build time.
+       Remove from the default None glob first so the SDK does not report duplicate items. The
+       README stays out of the output copy. -->
+  <ItemGroup>
+    <None Remove="Resources\**" />
+    <Content Include="Resources\**\*" Exclude="Resources\README.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <!-- UseWindowsForms + ImplicitUsings would add System.Windows.Forms and System.Drawing as
+       GLOBAL usings, which collide with WPF's System.Windows types (Application, MessageBox,
+       HorizontalAlignment, Point, ...). Remove them: TrayIcon.cs uses explicit aliases instead.
+       This is config, not a file include. -->
+  <ItemGroup>
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+  </ItemGroup>
+
+</Project>
