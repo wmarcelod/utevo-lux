@@ -31,6 +31,15 @@
     <PackageReference Include="NAudio" Version="2.2.1" />
   </ItemGroup>
 
+  <!-- Bundled image assets copied from the original TibiaVision (icon.ico, splash_logo.png,
+       tibia48.png). Embedded as WPF <Resource> so they resolve via
+       pack://application:,,,/Assets/<name>. Remove from the default None glob first so the
+       SDK does not report duplicate items. -->
+  <ItemGroup>
+    <None Remove="Assets\**" />
+    <Resource Include="Assets\**" />
+  </ItemGroup>
+
   <!-- UseWindowsForms + ImplicitUsings would add System.Windows.Forms and System.Drawing as
        GLOBAL usings, which collide with WPF's System.Windows types (Application, MessageBox,
        HorizontalAlignment, Point, ...). Remove them: TrayIcon.cs uses explicit aliases instead.

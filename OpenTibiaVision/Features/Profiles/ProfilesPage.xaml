@@ -1,0 +1,120 @@
+<UserControl x:Class="OpenTibiaVision.Features.Profiles.ProfilesPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0">
+            <TextBlock Text="Perfis" Style="{StaticResource Text.Title}"/>
+            <TextBlock Text="Cada perfil guarda seus proprios ajustes. Crie, troque, renomeie ou compartilhe perfis."
+                       Style="{StaticResource Text.Secondary}"
+                       FontSize="12" Margin="0,4,0,0" TextWrapping="Wrap"/>
+        </StackPanel>
+
+        <!-- Toolbar (global actions) -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,14,0,0">
+            <Button Padding="14,7"
+                    Style="{StaticResource Button.Accent}"
+                    Command="{Binding NewCommand}">
+                <StackPanel Orientation="Horizontal">
+                    <Path Width="14" Height="14" Stretch="Uniform" Fill="#FF08131C"
+                          VerticalAlignment="Center" Data="{StaticResource Icon.Add}"/>
+                    <TextBlock Text="Novo perfil" Margin="8,0,0,0" Foreground="#FF08131C"/>
+                </StackPanel>
+            </Button>
+            <Button Content="Importar..." Margin="10,0,0,0" Padding="14,7"
+                    Command="{Binding ImportCommand}"/>
+        </StackPanel>
+
+        <!-- Profile list -->
+        <Border Grid.Row="2"
+                Margin="0,12,0,0"
+                BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="1"
+                Background="{StaticResource SurfaceBrush}"
+                CornerRadius="6">
+            <Grid>
+                <TextBlock Text="Nenhum perfil ainda."
+                           Style="{StaticResource Text.Secondary}"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                           Visibility="{Binding HasNoProfiles, Converter={StaticResource BoolToVis}}"/>
+
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding Profiles}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Margin="8,6" Padding="0"
+                                        Background="{StaticResource CardBrush}"
+                                        CornerRadius="6">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Active accent bar -->
+                                        <Border Grid.Column="0" Width="3"
+                                                CornerRadius="6,0,0,6"
+                                                Background="{StaticResource AccentBrush}"
+                                                Visibility="{Binding IsActive, Converter={StaticResource BoolToVis}}"/>
+
+                                        <!-- Name + active badge -->
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal"
+                                                    VerticalAlignment="Center" Margin="14,12,8,12">
+                                            <TextBlock Text="{Binding Name}"
+                                                       FontSize="14" FontWeight="SemiBold"
+                                                       VerticalAlignment="Center"/>
+                                            <Border Margin="10,0,0,0"
+                                                    Padding="7,2"
+                                                    CornerRadius="4"
+                                                    VerticalAlignment="Center"
+                                                    Background="{StaticResource AccentSoftBrush}"
+                                                    Visibility="{Binding IsActive, Converter={StaticResource BoolToVis}}">
+                                                <TextBlock Text="Ativo" FontSize="11"
+                                                           Foreground="{StaticResource AccentBrush}"/>
+                                            </Border>
+                                        </StackPanel>
+
+                                        <!-- Row actions -->
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal"
+                                                    VerticalAlignment="Center" Margin="0,0,10,0">
+                                            <Button Content="Trocar" MinWidth="72" Margin="4,0,0,0"
+                                                    Command="{Binding DataContext.SwitchCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                    CommandParameter="{Binding}"/>
+                                            <Button Content="Renomear" MinWidth="80" Margin="4,0,0,0"
+                                                    Command="{Binding DataContext.RenameCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                    CommandParameter="{Binding}"/>
+                                            <Button Content="Exportar" MinWidth="80" Margin="4,0,0,0"
+                                                    Command="{Binding DataContext.ExportCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                    CommandParameter="{Binding}"/>
+                                            <Button Content="Excluir" MinWidth="72" Margin="4,0,0,0"
+                                                    Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                    CommandParameter="{Binding}"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+
+        <!-- Status -->
+        <TextBlock Grid.Row="3" Margin="0,10,0,0"
+                   Text="{Binding Status}"
+                   Style="{StaticResource Text.Secondary}"
+                   FontSize="12"/>
+    </Grid>
+</UserControl>
