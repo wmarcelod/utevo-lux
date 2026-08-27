@@ -1,0 +1,39 @@
+<Window x:Class="OpenTibiaVision.Features.Magnifier.MagnifierWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+        Title="OpenTibiaVision - Lupa"
+        Width="260" Height="260"
+        MinWidth="80" MinHeight="60"
+        WindowStyle="None"
+        AllowsTransparency="False"
+        ResizeMode="CanResize"
+        ShowInTaskbar="False"
+        ShowActivated="False"
+        Topmost="True"
+        Background="#FF0B0F14">
+
+    <!-- AllowsTransparency=False is REQUIRED: DWM live thumbnails do not composite into WPF
+         per-pixel-alpha (layered) windows. The rounded/circular shape comes from SetWindowRgn
+         on the HWND (see code-behind), not from window transparency. WindowChrome gives edge
+         resize for the fixed loupe without a caption. -->
+    <shell:WindowChrome.WindowChrome>
+        <shell:WindowChrome CaptionHeight="0"
+                            ResizeBorderThickness="6"
+                            CornerRadius="0"
+                            GlassFrameThickness="0"
+                            UseAeroCaptionButtons="False"/>
+    </shell:WindowChrome.WindowChrome>
+
+    <!-- RootBorder paints the accent ring (rounded-rect shape). The DWM thumbnail is composited
+         INTO the Host rect (rcDestination), which sits inside this border, so the ring is never
+         covered. Circle shape drops the border and relies on the elliptic window region. -->
+    <Border x:Name="RootBorder"
+            BorderBrush="{StaticResource AccentBrush}"
+            BorderThickness="2"
+            CornerRadius="16"
+            Background="#FF0B0F14"
+            MouseLeftButtonDown="OnBodyMouseLeftButtonDown">
+        <Grid x:Name="Host" Background="Black"/>
+    </Border>
+</Window>

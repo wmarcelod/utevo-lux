@@ -47,7 +47,11 @@ public static class ModuleCatalog
             }
         }
 
-        // Deterministic order: by Title. (A future release can add an explicit Order property.)
-        return modules.OrderBy(m => m.Title, StringComparer.OrdinalIgnoreCase).ToList();
+        // Deterministic order: by explicit Order, then Title. Undeclared modules default to
+        // Order 1000 and thus sort after the declared features, alphabetically among themselves.
+        return modules
+            .OrderBy(m => m.Order)
+            .ThenBy(m => m.Title, StringComparer.OrdinalIgnoreCase)
+            .ToList();
     }
 }

@@ -24,6 +24,13 @@ public interface IFeatureModule
     /// <summary>Vector icon geometry for the sidebar (crisp at any UI scale).</summary>
     Geometry Icon { get; }
 
+    /// <summary>
+    /// Sidebar sort key (ascending; ties broken by <see cref="Title"/>). Lower = higher in the nav.
+    /// Defaulted so a drop-in module needs no edit here; declared features override it to claim a
+    /// deliberate slot. Convention: leave gaps of 10 so a new feature can slot between two others.
+    /// </summary>
+    int Order => 1000;
+
     /// <summary>Receive shared services. Called once, before RegisterHotkeys / BuildPage.</summary>
     void Init(IAppServices services);
 

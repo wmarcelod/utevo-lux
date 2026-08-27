@@ -14,15 +14,20 @@ using OpenTibiaVision.ViewModels;
 namespace OpenTibiaVision.Features.Mirror;
 
 /// <summary>
-/// Backs the regions dashboard: pick a source window, drag-select a crop against the game
-/// CLIENT viewport, and manage each region's live DWM mirror. Regions persist through the
-/// shared <see cref="ISettingsStore"/> (atomic + 400 ms debounced) under one key.
+/// Backs the regions dashboard: pick a source window, define a crop against the game CLIENT
+/// viewport (drag-select or the ~4x crop loupe), and manage each region's live DWM mirror.
+/// Region geometry persists via the shared <see cref="ISettingsStore"/> under "mirror.regions";
+/// the extended per-region UX (zoom/opacity/passthrough/auto-hide/fixed-box) persists via
+/// <see cref="MirrorUxStore"/> under "mirror.ux" — RegionConfig (a foundation model) is untouched.
 /// </summary>
 public sealed class MirrorPageViewModel : ViewModelBase
 {
     private const string RegionsKey = "mirror.regions";
 
     private readonly IAppServices _services;
+    private readonly MirrorUxStore _uxStore;
+    private readonly SourceWindowWatcher _watcher;
+
     private WindowInfo? _selectedSource;
     private string _status = "Pronto.";
     private int _regionCounter;
@@ -30,10 +35,13 @@ public sealed class MirrorPageViewModel : ViewModelBase
     public MirrorPageViewModel(IAppServices services)
     {
         _services = services;
+        _uxStore = new MirrorUxStore(services.Settings);
+        _watcher = new SourceWindowWatcher();
 
         RefreshSourcesCommand = new RelayCommand(RefreshSources);
         DetectTibiaCommand = new RelayCommand(DetectTibia);
-        AddRegionCommand = new RelayCommand(AddRegion);
+        AddRegionCommand = new RelayCommand(AddRegionDrag);
+        AddRegionLoupeCommand = new RelayCommand(AddRegionLoupe);
 
         RefreshSources();
     }
@@ -56,6 +64,7 @@ public sealed class MirrorPageViewModel : ViewModelBase
     public ICommand RefreshSourcesCommand { get; }
     public ICommand DetectTibiaCommand { get; }
     public ICommand AddRegionCommand { get; }
+    public ICommand AddRegionLoupeCommand { get; }
 
     // ---- source discovery ----
 
@@ -110,35 +119,83 @@ public sealed class MirrorPageViewModel : ViewModelBase
 
     // ---- region creation ----
 
-    private void AddRegion()
+    private void AddRegionDrag()
     {
-        if (SelectedSource is not WindowInfo source || source.Hwnd == IntPtr.Zero)
-        {
-            Status = "Selecione uma janela fonte primeiro.";
+        if (!TryGetSelectedClient(out WindowInfo source, out RECT client))
             return;
-        }
-
-        // Crop against the CLIENT area (game viewport), matching fSourceClientAreaOnly.
-        RECT client = _services.Windows.GetClientBoundsInScreen(source.Hwnd);
-        if (client.Width <= 0 || client.Height <= 0)
-        {
-            Status = "Nao foi possivel obter a area do cliente da janela fonte.";
-            return;
-        }
 
         var overlay = new RegionSelectorOverlay(client) { Owner = _services.ShellWindow };
-        bool? confirmed = overlay.ShowDialog();
-
-        if (confirmed != true || overlay.Result is not RectFraction fraction)
+        if (overlay.ShowDialog() != true || overlay.Result is not RectFraction fraction)
         {
             Status = "Selecao de regiao cancelada.";
             return;
         }
 
-        RegionConfig config = BuildRegionConfig(source, client, fraction);
+        RECT crop = FractionToCrop(fraction, client);
+        CommitNewRegion(source.Title, TryGetProcessName(source.Hwnd), source.Hwnd, client, crop, null, null);
+    }
 
-        var row = new RegionRowViewModel(_services, config, source.Hwnd);
-        WireRow(row);
+    private void AddRegionLoupe()
+    {
+        if (!TryGetSelectedClient(out WindowInfo source, out RECT client))
+            return;
+
+        var controller = new LoupePickController(_services, source.Hwnd, client);
+        controller.Pick(220, 160, (crop, boxW, boxH) =>
+            CommitNewRegion(source.Title, TryGetProcessName(source.Hwnd), source.Hwnd, client, crop, boxW, boxH),
+            () => Status = "Selecao de regiao cancelada.");
+    }
+
+    /// <summary>"Novo espelho desta fonte" from a row's context menu: re-use that row's source.</summary>
+    private void NewCropFromRow(RegionRowViewModel row)
+    {
+        IntPtr hwnd = row.SourceHwnd;
+        RECT client = _services.Windows.GetClientBoundsInScreen(hwnd);
+        if (hwnd == IntPtr.Zero || client.Width <= 0 || client.Height <= 0)
+        {
+            _services.Info("OpenTibiaVision", "Fonte indisponivel para criar um novo espelho.");
+            return;
+        }
+
+        var controller = new LoupePickController(_services, hwnd, client);
+        controller.Pick(row.Ux.FixedCropWidth, row.Ux.FixedCropHeight, (crop, boxW, boxH) =>
+            CommitNewRegion(row.Config.SourceTitle, row.Config.SourceProcess, hwnd, client, crop, boxW, boxH));
+    }
+
+    private bool TryGetSelectedClient(out WindowInfo source, out RECT client)
+    {
+        client = default;
+        if (SelectedSource is not WindowInfo s || s.Hwnd == IntPtr.Zero)
+        {
+            source = default;
+            Status = "Selecione uma janela fonte primeiro.";
+            return false;
+        }
+
+        source = s;
+        client = _services.Windows.GetClientBoundsInScreen(s.Hwnd);
+        if (client.Width <= 0 || client.Height <= 0)
+        {
+            Status = "Nao foi possivel obter a area do cliente da janela fonte.";
+            return false;
+        }
+        return true;
+    }
+
+    private void CommitNewRegion(string sourceTitle, string sourceProcess, IntPtr hwnd, RECT client,
+        RECT crop, int? fixedBoxW, int? fixedBoxH)
+    {
+        RegionConfig config = BuildRegionConfig(sourceTitle, sourceProcess, client, crop);
+
+        if (fixedBoxW is int fw && fixedBoxH is int fh)
+        {
+            MirrorUxState ux = _uxStore.GetOrCreate(config.Id);
+            ux.FixedCropWidth = fw;
+            ux.FixedCropHeight = fh;
+            _uxStore.Save();
+        }
+
+        RegionRowViewModel row = CreateRow(config, hwnd);
         Regions.Add(row);
         row.ShowMirror();
 
@@ -146,21 +203,10 @@ public sealed class MirrorPageViewModel : ViewModelBase
         Save();
     }
 
-    private RegionConfig BuildRegionConfig(WindowInfo source, RECT client, RectFraction fraction)
+    private RegionConfig BuildRegionConfig(string sourceTitle, string sourceProcess, RECT client, RECT crop)
     {
-        // Crop in physical px, relative to the CLIENT area top-left.
-        int left = (int)Math.Round(fraction.X * client.Width);
-        int top = (int)Math.Round(fraction.Y * client.Height);
-        int right = (int)Math.Round((fraction.X + fraction.W) * client.Width);
-        int bottom = (int)Math.Round((fraction.Y + fraction.H) * client.Height);
-
-        left = Math.Clamp(left, 0, client.Width);
-        right = Math.Clamp(right, 0, client.Width);
-        top = Math.Clamp(top, 0, client.Height);
-        bottom = Math.Clamp(bottom, 0, client.Height);
-
-        int cropWidth = Math.Max(1, right - left);
-        int cropHeight = Math.Max(1, bottom - top);
+        int cropWidth = Math.Max(1, crop.Width);
+        int cropHeight = Math.Max(1, crop.Height);
 
         // Default mirror size (physical px): preserve crop aspect at a comfortable size.
         double aspect = (double)cropWidth / cropHeight;
@@ -170,12 +216,12 @@ public sealed class MirrorPageViewModel : ViewModelBase
         return new RegionConfig
         {
             Name = $"Regiao {++_regionCounter}",
-            SourceTitle = source.Title,
-            SourceProcess = TryGetProcessName(source.Hwnd),
-            CropLeft = left,
-            CropTop = top,
-            CropRight = right,
-            CropBottom = bottom,
+            SourceTitle = sourceTitle,
+            SourceProcess = sourceProcess,
+            CropLeft = crop.Left,
+            CropTop = crop.Top,
+            CropRight = crop.Right,
+            CropBottom = crop.Bottom,
             MirrorLeft = client.Left + 40,
             MirrorTop = client.Top + 40,
             MirrorWidth = mirrorWidth,
@@ -183,6 +229,21 @@ public sealed class MirrorPageViewModel : ViewModelBase
             Visible = true,
             Locked = false
         };
+    }
+
+    private static RECT FractionToCrop(RectFraction f, RECT client)
+    {
+        int left = (int)Math.Round(f.X * client.Width);
+        int top = (int)Math.Round(f.Y * client.Height);
+        int right = (int)Math.Round((f.X + f.W) * client.Width);
+        int bottom = (int)Math.Round((f.Y + f.H) * client.Height);
+
+        left = Math.Clamp(left, 0, client.Width);
+        right = Math.Clamp(right, 0, client.Width);
+        top = Math.Clamp(top, 0, client.Height);
+        bottom = Math.Clamp(bottom, 0, client.Height);
+
+        return new RECT(left, top, Math.Max(left + 1, right), Math.Max(top + 1, bottom));
     }
 
     private static string TryGetProcessName(IntPtr hwnd)
@@ -207,8 +268,8 @@ public sealed class MirrorPageViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Async staggered restore behind the shell's progress overlay: load saved regions and
-    /// show the visible ones with a small inter-item delay (optimization principle 6).
+    /// Async staggered restore behind the shell's progress overlay: load saved regions and show
+    /// the visible ones with a small inter-item delay (principle 6).
     /// </summary>
     public async Task RestoreAsync(IProgress<string> progress, CancellationToken ct)
     {
@@ -227,8 +288,7 @@ public sealed class MirrorPageViewModel : ViewModelBase
             ct.ThrowIfCancellationRequested();
 
             IntPtr hwnd = ResolveSource(config, current);
-            var row = new RegionRowViewModel(_services, config, hwnd);
-            WireRow(row);
+            RegionRowViewModel row = CreateRow(config, hwnd);
             Regions.Add(row);
 
             if (config.Name.StartsWith("Regiao ", StringComparison.Ordinal) &&
@@ -266,16 +326,28 @@ public sealed class MirrorPageViewModel : ViewModelBase
         return IntPtr.Zero;
     }
 
+    private RegionRowViewModel CreateRow(RegionConfig config, IntPtr hwnd)
+    {
+        MirrorUxState ux = _uxStore.GetOrCreate(config.Id);
+        var row = new RegionRowViewModel(_services, config, hwnd, ux, _uxStore, _watcher);
+        WireRow(row);
+        return row;
+    }
+
     private void WireRow(RegionRowViewModel row)
     {
         row.RemoveRequested += OnRowRemoveRequested;
+        row.NewCropRequested += NewCropFromRow;
         row.Changed += Save;
     }
 
     private void OnRowRemoveRequested(RegionRowViewModel row)
     {
         row.RemoveRequested -= OnRowRemoveRequested;
+        row.NewCropRequested -= NewCropFromRow;
         row.Changed -= Save;
+        row.Dispose();
+        _uxStore.Remove(row.Config.Id);
         Regions.Remove(row);
         Status = "Regiao removida.";
         Save();
@@ -296,7 +368,11 @@ public sealed class MirrorPageViewModel : ViewModelBase
     public void Shutdown()
     {
         foreach (RegionRowViewModel row in Regions)
+        {
             row.CloseMirrorKeepState();
+            row.Dispose();
+        }
+        _watcher.Dispose();
         _services.Settings.Flush();
     }
 }

@@ -22,6 +22,7 @@ public sealed class MirrorModule : IFeatureModule, IStartupRestore, IShutdownHoo
 
     public string Id => "mirror";
     public string Title => "Espelhos";
+    public int Order => 10;
 
     public Geometry Icon =>
         Application.Current?.TryFindResource("Icon.Mirror") as Geometry

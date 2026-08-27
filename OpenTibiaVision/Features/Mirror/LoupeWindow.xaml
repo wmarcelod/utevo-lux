@@ -1,0 +1,24 @@
+<Window x:Class="OpenTibiaVision.Features.Mirror.LoupeWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="OpenTibiaVision - Loupe"
+        Width="360" Height="288"
+        WindowStyle="None"
+        AllowsTransparency="False"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        ShowActivated="False"
+        Topmost="True"
+        Background="#FF0B0E13">
+
+    <!-- Opaque, borderless, ~4x magnifier over the source, used while picking a crop.
+         AllowsTransparency=False is REQUIRED so DWM composites the live thumbnail (same
+         constraint as MirrorWindow). The crosshair lives in a SEPARATE reticle window because
+         DWM draws the thumbnail on top of any WPF content inside rcDestination. -->
+    <Border x:Name="RootBorder"
+            BorderBrush="{StaticResource AccentBrush}"
+            BorderThickness="2"
+            Background="#FF0B0E13">
+        <Grid x:Name="Host" Background="Black"/>
+    </Border>
+</Window>

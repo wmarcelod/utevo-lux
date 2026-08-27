@@ -1,6 +1,10 @@
 <UserControl x:Class="OpenTibiaVision.Features.Mirror.MirrorPage"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </UserControl.Resources>
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -29,18 +33,19 @@
         </Grid>
 
         <!-- Add region -->
-        <Button Grid.Row="1"
-                HorizontalAlignment="Left"
-                Margin="0,12,0,0"
-                Padding="14,7"
-                Style="{StaticResource Button.Accent}"
-                Command="{Binding AddRegionCommand}">
-            <StackPanel Orientation="Horizontal">
-                <Path Width="14" Height="14" Stretch="Uniform" Fill="#FF08131C"
-                      VerticalAlignment="Center" Data="{StaticResource Icon.Add}"/>
-                <TextBlock Text="Adicionar Regiao" Margin="8,0,0,0" Foreground="#FF08131C"/>
-            </StackPanel>
-        </Button>
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,12,0,0">
+            <Button Padding="14,7"
+                    Style="{StaticResource Button.Accent}"
+                    Command="{Binding AddRegionCommand}">
+                <StackPanel Orientation="Horizontal">
+                    <Path Width="14" Height="14" Stretch="Uniform" Fill="#FF08131C"
+                          VerticalAlignment="Center" Data="{StaticResource Icon.Add}"/>
+                    <TextBlock Text="Adicionar Regiao" Margin="8,0,0,0" Foreground="#FF08131C"/>
+                </StackPanel>
+            </Button>
+            <Button Content="Adicionar (loupe)" Margin="10,0,0,0" Padding="14,7"
+                    Command="{Binding AddRegionLoupeCommand}"/>
+        </StackPanel>
 
         <!-- Region list -->
         <Border Grid.Row="2"
@@ -56,31 +61,110 @@
                             <Border Margin="8,6" Padding="12"
                                     Background="{StaticResource CardBrush}"
                                     CornerRadius="6">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <!-- Header row -->
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
 
-                                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="SemiBold"/>
-                                        <TextBlock Text="{Binding DisplayInfo}"
-                                                   Style="{StaticResource Text.Secondary}"
-                                                   FontSize="11" Margin="0,2,0,0"/>
-                                    </StackPanel>
+                                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{Binding DisplayInfo}"
+                                                       Style="{StaticResource Text.Secondary}"
+                                                       FontSize="11" Margin="0,2,0,0"/>
+                                        </StackPanel>
 
-                                    <StackPanel Grid.Column="1" Orientation="Horizontal">
-                                        <Button Content="{Binding VisibleButtonText}"
-                                                MinWidth="76" Margin="4,0,0,0"
-                                                Command="{Binding ToggleVisibleCommand}"/>
-                                        <Button Content="{Binding LockButtonText}"
-                                                MinWidth="76" Margin="4,0,0,0"
-                                                Command="{Binding ToggleLockCommand}"/>
-                                        <Button Content="Remover"
-                                                MinWidth="76" Margin="4,0,0,0"
-                                                Command="{Binding RemoveCommand}"/>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                            <Button Content="{Binding ExpandButtonText}"
+                                                    MinWidth="70" Margin="4,0,0,0"
+                                                    Command="{Binding ToggleExpandCommand}"/>
+                                            <Button Content="{Binding VisibleButtonText}"
+                                                    MinWidth="76" Margin="4,0,0,0"
+                                                    Command="{Binding ToggleVisibleCommand}"/>
+                                            <Button Content="{Binding LockButtonText}"
+                                                    MinWidth="76" Margin="4,0,0,0"
+                                                    Command="{Binding ToggleLockCommand}"/>
+                                            <Button Content="Remover"
+                                                    MinWidth="76" Margin="4,0,0,0"
+                                                    Command="{Binding RemoveCommand}"/>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <!-- Expandable controls -->
+                                    <StackPanel Margin="0,10,0,0"
+                                                Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVis}}">
+                                        <Grid Margin="0,2">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="70"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="52"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="Zoom" VerticalAlignment="Center"
+                                                       Style="{StaticResource Text.Secondary}" FontSize="12"/>
+                                            <Slider Grid.Column="1" VerticalAlignment="Center"
+                                                    Minimum="50" Maximum="400" SmallChange="5" LargeChange="25"
+                                                    Value="{Binding ZoomPercent, Mode=TwoWay}"/>
+                                            <TextBlock Grid.Column="2" VerticalAlignment="Center" TextAlignment="Right"
+                                                       FontSize="12"
+                                                       Text="{Binding ZoomPercent, StringFormat={}{0:0}%}"/>
+                                        </Grid>
+
+                                        <Grid Margin="0,2">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="70"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="52"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="Opacidade" VerticalAlignment="Center"
+                                                       Style="{StaticResource Text.Secondary}" FontSize="12"/>
+                                            <Slider Grid.Column="1" VerticalAlignment="Center"
+                                                    Minimum="15" Maximum="100" SmallChange="1" LargeChange="10"
+                                                    Value="{Binding OpacityPercent, Mode=TwoWay}"/>
+                                            <TextBlock Grid.Column="2" VerticalAlignment="Center" TextAlignment="Right"
+                                                       FontSize="12"
+                                                       Text="{Binding OpacityPercent, StringFormat={}{0:0}%}"/>
+                                        </Grid>
+
+                                        <Grid Margin="0,2">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="70"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="52"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="Escala" VerticalAlignment="Center"
+                                                       Style="{StaticResource Text.Secondary}" FontSize="12"/>
+                                            <Slider Grid.Column="1" VerticalAlignment="Center"
+                                                    Minimum="25" Maximum="400" SmallChange="5" LargeChange="25"
+                                                    Value="{Binding ScalePercent, Mode=TwoWay}"/>
+                                            <TextBlock Grid.Column="2" VerticalAlignment="Center" TextAlignment="Right"
+                                                       FontSize="12"
+                                                       Text="{Binding ScalePercent, StringFormat={}{0:0}%}"/>
+                                        </Grid>
+
+                                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                            <CheckBox Content="Passar clique direito"
+                                                      Foreground="{StaticResource TextPrimaryBrush}"
+                                                      VerticalContentAlignment="Center"
+                                                      IsChecked="{Binding RightClickPassthrough, Mode=TwoWay}"/>
+                                            <CheckBox Content="Auto-ocultar com a fonte"
+                                                      Margin="18,0,0,0"
+                                                      Foreground="{StaticResource TextPrimaryBrush}"
+                                                      VerticalContentAlignment="Center"
+                                                      IsChecked="{Binding AutoHide, Mode=TwoWay}"/>
+                                        </StackPanel>
+
+                                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                            <Button Content="Refazer recorte" Margin="0,0,8,0"
+                                                    Command="{Binding RecropDragCommand}"/>
+                                            <Button Content="Recorte (loupe)" Margin="0,0,8,0"
+                                                    Command="{Binding RecropLoupeCommand}"/>
+                                            <Button Content="Novo espelho"
+                                                    Command="{Binding NewCropCommand}"/>
+                                        </StackPanel>
                                     </StackPanel>
-                                </Grid>
+                                </StackPanel>
                             </Border>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
