@@ -27,7 +27,16 @@ public sealed class MapModule : IFeatureModule
         Application.Current?.TryFindResource("Icon.Map") as Geometry
         ?? Geometry.Parse("M3,6 L9,3 L15,6 L21,3 V18 L15,21 L9,18 L3,21 Z M9,3 V18 M15,6 V21");
 
-    public void Init(IAppServices services) => _services = services;
+    public void Init(IAppServices services)
+    {
+        _services = services;
+
+        // Kick off the ONE-per-launch background fetch of the tibiaroute.com creature-spawn dataset
+        // (fire-and-forget, guarded so it runs at most once). The shell never waits on network I/O;
+        // the map uses whatever is cached/available when it opens. Never throws. tibiaroute.com is a
+        // THIRD-PARTY source that may change without notice — see TibiaRouteSpawnProvider.
+        TibiaRouteSpawnProvider.Shared.StartBackgroundRefreshOnce();
+    }
 
     public void RegisterHotkeys(IHotkeyManager hotkeys)
     {

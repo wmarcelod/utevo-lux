@@ -23,6 +23,26 @@ public class MonsterSpawnDirectory
 
     public static MonsterSpawnDirectory LoadDefault()
     {
+        // PREFER the live third-party creature-spawn dataset from tibiaroute.com when it is
+        // available this launch (freshly fetched, or the last cached copy). tibiaroute.com is a
+        // THIRD-PARTY source whose shape may change without notice; TibiaRouteSpawnProvider is
+        // written to never throw, so on any problem Load() returns null and we transparently fall
+        // back to the bundled monster_spawns.dat below. (Fetch politeness/caching policy lives in
+        // TibiaRouteSpawnProvider.)
+        try
+        {
+            IReadOnlyList<NpcEntry>? live = TibiaRouteSpawnProvider.Shared.Load();
+            if (live is { Count: > 0 })
+            {
+                return new MonsterSpawnDirectory(live.ToList());
+            }
+        }
+        catch
+        {
+            // Defensive only: Load() is designed never to throw. Never let a live-source hiccup
+            // cost the map its bundled .dat fallback.
+        }
+
         string[] array = new string[2]
         {
             Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "map", "monster_spawns.dat"),

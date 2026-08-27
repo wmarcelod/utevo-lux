@@ -53,7 +53,10 @@ public partial class MapWindow : Window
     private readonly IMarkerStore _markerStore;
     private readonly NpcDirectory _npcDirectory;
     private readonly RareCreatureDirectory _rareDirectory;
-    private readonly MonsterSpawnDirectory _spawnDirectory;
+    // Not readonly: the "Atualizar criaturas (tibiaroute)" action rebuilds this in place after a
+    // manual refresh so the creature search + reveal-on-map layers pick up the fresh dataset.
+    private MonsterSpawnDirectory _spawnDirectory;
+    private bool _spawnRefreshBusy;
     private readonly IRouteStore _routeStore;
 
     private NpcEntry? _npcResult;
@@ -134,6 +137,7 @@ public partial class MapWindow : Window
         _npcDirectory = NpcDirectory.LoadDefault();
         _rareDirectory = RareCreatureDirectory.LoadDefault();
         _spawnDirectory = MonsterSpawnDirectory.LoadDefault();
+        UpdateSpawnSourceStatus();
 
         NpcSearchToggle.IsChecked = _settings.NpcSearchEnabled;
         ApplyNpcSearchVisibility();
@@ -1395,6 +1399,50 @@ public partial class MapWindow : Window
     }
 
     private void ShowRareMatches(string query) => PopulateResults(SearchCreatures(query), RareResults);
+
+    // ------------------------------------------------------- tibiaroute creature-spawn source
+    // The creature/rare search feeds off _spawnDirectory, which prefers the live tibiaroute.com
+    // dataset (fetched once per launch in the background) and otherwise the bundled .dat. These
+    // handlers surface a manual refresh + an "atualizado em ..." status. tibiaroute.com is a
+    // THIRD-PARTY source that may change without notice — the provider never throws.
+
+    /// <summary>Reflect the current creature-spawn source (live tibiaroute vs bundled .dat) + age.</summary>
+    private void UpdateSpawnSourceStatus()
+    {
+        DateTime? when = TibiaRouteSpawnProvider.Shared.LastUpdatedUtc;
+        SpawnRefreshStatus.Text = when.HasValue
+            ? $"tibiaroute · atualizado em {when.Value.ToLocalTime():dd/MM/yyyy HH:mm}"
+            : "usando dados internos (.dat)";
+    }
+
+    private async void SpawnRefreshButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_spawnRefreshBusy)
+            return;
+
+        _spawnRefreshBusy = true;
+        SpawnRefreshButton.IsEnabled = false;
+        object? previousContent = SpawnRefreshButton.Content;
+        SpawnRefreshButton.Content = "Atualizando...";
+        try
+        {
+            // User-initiated one-shot fetch (separate from the once-per-launch auto fetch); never
+            // throws. Then rebuild the spawn directory so search + reveal use the fresh dataset.
+            await TibiaRouteSpawnProvider.Shared.RefreshAsync();
+            _spawnDirectory = MonsterSpawnDirectory.LoadDefault();
+
+            // Re-run the visible creature search (if any) so shown results reflect the new data.
+            if (!string.IsNullOrWhiteSpace(RareSearchBox.Text) && RareResults.Visibility == Visibility.Visible)
+                ShowRareMatches(RareSearchBox.Text);
+        }
+        finally
+        {
+            SpawnRefreshButton.Content = previousContent;
+            SpawnRefreshButton.IsEnabled = true;
+            _spawnRefreshBusy = false;
+            UpdateSpawnSourceStatus();
+        }
+    }
 
     private IReadOnlyList<NpcEntry> SearchCreatures(string query, int max = 8)
     {
