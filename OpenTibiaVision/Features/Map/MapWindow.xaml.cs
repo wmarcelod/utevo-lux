@@ -56,7 +56,6 @@ public partial class MapWindow : Window
     // Not readonly: the "Atualizar criaturas (tibiaroute)" action rebuilds this in place after a
     // manual refresh so the creature search + reveal-on-map layers pick up the fresh dataset.
     private MonsterSpawnDirectory _spawnDirectory;
-    private bool _spawnRefreshBusy;
     private readonly IRouteStore _routeStore;
 
     private NpcEntry? _npcResult;
@@ -70,6 +69,10 @@ public partial class MapWindow : Window
     // frame even while the user is in the game. Cleared whenever the marker layer is rebuilt.
     private readonly List<System.Windows.Media.Animation.ClockController> _pulseClocks = new();
     private bool _animPaused;
+
+    // Animates multi-frame creature/item GIFs in the loot panel (WPF BitmapImage shows only frame 0).
+    // Paused together with the marker pulses when the map is unfocused/hidden.
+    private readonly GifAnimator _gif = new();
 
     private Canvas? _spawnClusterHost;
     private Path? _spawnDotBright;
@@ -144,7 +147,6 @@ public partial class MapWindow : Window
         _npcDirectory = NpcDirectory.LoadDefault();
         _rareDirectory = RareCreatureDirectory.LoadDefault();
         _spawnDirectory = MonsterSpawnDirectory.LoadDefault();
-        UpdateSpawnSourceStatus();
 
         NpcSearchToggle.IsChecked = _settings.NpcSearchEnabled;
         ApplyNpcSearchVisibility();
@@ -716,6 +718,7 @@ public partial class MapWindow : Window
         if (shouldPause == _animPaused)
             return;
         _animPaused = shouldPause;
+        _gif.Paused = shouldPause;
         foreach (var controller in _pulseClocks)
         {
             try
@@ -1454,50 +1457,9 @@ public partial class MapWindow : Window
 
     private void ShowRareMatches(string query) => PopulateResults(SearchCreatures(query), RareResults);
 
-    // ------------------------------------------------------- tibiaroute creature-spawn source
     // The creature/rare search feeds off _spawnDirectory, which prefers the live tibiaroute.com
-    // dataset (fetched once per launch in the background) and otherwise the bundled .dat. These
-    // handlers surface a manual refresh + an "atualizado em ..." status. tibiaroute.com is a
-    // THIRD-PARTY source that may change without notice — the provider never throws.
-
-    /// <summary>Reflect the current creature-spawn source (live tibiaroute vs bundled .dat) + age.</summary>
-    private void UpdateSpawnSourceStatus()
-    {
-        DateTime? when = TibiaRouteSpawnProvider.Shared.LastUpdatedUtc;
-        SpawnRefreshStatus.Text = when.HasValue
-            ? $"tibiaroute · atualizado em {when.Value.ToLocalTime():dd/MM/yyyy HH:mm}"
-            : "usando dados internos (.dat)";
-    }
-
-    private async void SpawnRefreshButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (_spawnRefreshBusy)
-            return;
-
-        _spawnRefreshBusy = true;
-        SpawnRefreshButton.IsEnabled = false;
-        object? previousContent = SpawnRefreshButton.Content;
-        SpawnRefreshButton.Content = "Atualizando...";
-        try
-        {
-            // User-initiated one-shot fetch (separate from the once-per-launch auto fetch); never
-            // throws. Then rebuild the spawn directory so search + reveal use the fresh dataset.
-            await TibiaRouteSpawnProvider.Shared.RefreshAsync();
-            _spawnDirectory = MonsterSpawnDirectory.LoadDefault();
-
-            // Re-run the visible creature search (if any) so shown results reflect the new data.
-            if (!string.IsNullOrWhiteSpace(RareSearchBox.Text) && RareResults.Visibility == Visibility.Visible)
-                ShowRareMatches(RareSearchBox.Text);
-        }
-        finally
-        {
-            SpawnRefreshButton.Content = previousContent;
-            SpawnRefreshButton.IsEnabled = true;
-            _spawnRefreshBusy = false;
-            UpdateSpawnSourceStatus();
-        }
-    }
-
+    // dataset (fetched once per launch in the background by MapModule) and otherwise the bundled
+    // .dat. There is no manual-refresh UI; the once-per-launch auto fetch keeps it current.
     private IReadOnlyList<NpcEntry> SearchCreatures(string query, int max = 8)
     {
         string q = (query ?? "").Trim();
@@ -1584,7 +1546,11 @@ public partial class MapWindow : Window
         System.Threading.CancellationToken ct = cts.Token;
 
         LootCreatureName.Text = creatureName;
-        LootCreatureIcon.Source = SpriteProvider.GetCreature(creatureName);
+        string? creaturePath = SpriteProvider.GetCreaturePath(creatureName);
+        if (creaturePath != null)
+            _gif.Register(LootCreatureIcon, creaturePath);
+        else
+            LootCreatureIcon.Source = null;
         LootGrid.Children.Clear();
         LootStatus.Text = "carregando loot...";
         LootPanel.Visibility = Visibility.Visible;
@@ -1617,10 +1583,10 @@ public partial class MapWindow : Window
         int withIcon = 0;
         foreach (string itemName in loot)
         {
-            ImageSource? icon = ItemSpriteProvider.GetItem(itemName);
-            if (icon != null)
+            string? path = ItemSpriteProvider.GetItemPath(itemName);
+            if (path != null)
                 withIcon++;
-            LootGrid.Children.Add(BuildLootCell(itemName, icon));
+            LootGrid.Children.Add(BuildLootCell(itemName, path));
         }
         LootStatus.Text = $"{loot.Count} itens · {withIcon} com icone · fonte: TibiaData";
     }
@@ -1639,7 +1605,7 @@ public partial class MapWindow : Window
     private void LootCloseButton_Click(object sender, RoutedEventArgs e) => HideLoot();
 
     /// <summary>An icon cell (drop name in the tooltip), or a small text chip when we lack the icon.</summary>
-    private FrameworkElement BuildLootCell(string itemName, ImageSource? icon)
+    private FrameworkElement BuildLootCell(string itemName, string? path)
     {
         var cell = new Border
         {
@@ -1650,7 +1616,7 @@ public partial class MapWindow : Window
             BorderThickness = new Thickness(1),
             ToolTip = itemName
         };
-        if (icon != null)
+        if (path != null)
         {
             cell.Width = 40;
             cell.Height = 40;
@@ -1658,12 +1624,12 @@ public partial class MapWindow : Window
             {
                 Width = 32,
                 Height = 32,
-                Source = icon,
                 Stretch = Stretch.Uniform,
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center
             };
             RenderOptions.SetBitmapScalingMode(img, BitmapScalingMode.NearestNeighbor);
+            _gif.Register(img, path); // sets first frame + animates if the gif has >1 frame
             cell.Child = img;
         }
         else

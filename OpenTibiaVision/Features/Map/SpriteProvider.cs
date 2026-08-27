@@ -40,6 +40,21 @@ public static class SpriteProvider
         return Get("npcs", name);
     }
 
+    /// <summary>Resolved absolute path of the creature's gif, or null if none — for GIF animation.</summary>
+    public static string? GetCreaturePath(string name) => GetPath("creatures", name);
+
+    /// <summary>Resolved absolute path of the NPC's gif, or null if none — for GIF animation.</summary>
+    public static string? GetNpcPath(string name) => GetPath("npcs", name);
+
+    private static string? GetPath(string folder, string name)
+    {
+        string slug = Slug(name);
+        if (slug.Length == 0)
+            return null;
+        string path = Path.Combine(ResolveDirectory(folder), slug + ".gif");
+        return File.Exists(path) ? path : null;
+    }
+
     private static ImageSource? Get(string folder, string name)
     {
         string text = Slug(name);

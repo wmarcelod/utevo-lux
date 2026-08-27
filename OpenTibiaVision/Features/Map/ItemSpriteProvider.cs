@@ -1,24 +1,23 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
 namespace OpenTibiaVision.Features.Map;
 
 /// <summary>
-/// Resolves an item name -> slug -> <c>Resources/items/{slug}.{gif|png}</c>, loading each with
-/// OnLoad + Freeze so it is safe to reuse across threads/renders. Results are memoized (including
-/// negative/null misses) so a missing icon is looked up on disk only once.
-///
-/// The item bank under Resources/items was extracted from the CURRENT official client (see the
-/// tibia-extractor pipeline): most items are static single-frame sprites saved as .png, animated
-/// ones as .gif. Keyed by the same underscore slug the creature/NPC sprites use
+/// Resolves an item name -> slug -> <c>Resources/items/{slug}.{gif|png}</c>. The item bank was
+/// extracted from the CURRENT official client: most items are static single-frame .png, animated
+/// ones are .gif. Keyed by the same underscore slug as the creature/NPC sprites
 /// (<see cref="SpriteProvider.Slug"/>), so a loot name maps straight to an icon.
 ///
-/// PLURAL FALLBACK: TibiaData loot names are usually plural ("gold coins", "broken helmets") while
-/// item names are singular ("gold coin", "broken helmet"). When the exact slug misses we retry a
-/// few naive singular forms before giving up, which recovers the vast majority of loot rows.
+/// PLURAL / WORD MATCHING: TibiaData loot names are usually plural ("gold coins") while item names
+/// are singular ("gold coin"), and the plural word is not always the last one ("veins of ore" ->
+/// "vein of ore") and is sometimes irregular ("wimp teeth chain" -> "wimp tooth chain"). We try the
+/// exact slug first, then singularized variants (last word, first word, all words, with an irregular
+/// table) so the vast majority of loot rows resolve to an icon instead of falling back to text.
 /// </summary>
 public static class ItemSpriteProvider
 {
@@ -31,7 +30,16 @@ public static class ItemSpriteProvider
 
     private static readonly string[] Extensions = { ".gif", ".png" };
 
-    /// <summary>Item name -> icon, or null when no matching file exists (miss is memoized).</summary>
+    // Common irregular plurals that show up in Tibia loot names.
+    private static readonly Dictionary<string, string> Irregular = new(StringComparer.Ordinal)
+    {
+        ["teeth"] = "tooth", ["feet"] = "foot", ["wolves"] = "wolf", ["lives"] = "life",
+        ["leaves"] = "leaf", ["knives"] = "knife", ["elves"] = "elf", ["loaves"] = "loaf",
+        ["halves"] = "half", ["thieves"] = "thief", ["geese"] = "goose", ["mice"] = "mouse",
+        ["men"] = "man", ["children"] = "child", ["scarves"] = "scarf",
+    };
+
+    /// <summary>Item name -> icon (first frame), or null when no matching file exists (memoized).</summary>
     public static ImageSource? GetItem(string name)
     {
         string slug = SpriteProvider.Slug(name);
@@ -46,26 +54,16 @@ public static class ItemSpriteProvider
             ImageSource? resolved = null;
             try
             {
-                string dir = ResolveDirectory();
-                foreach (string candidate in SlugCandidates(slug))
+                string? path = ResolvePath(slug);
+                if (path != null)
                 {
-                    foreach (string ext in Extensions)
-                    {
-                        string path = Path.Combine(dir, candidate + ext);
-                        if (File.Exists(path))
-                        {
-                            var bmp = new BitmapImage();
-                            bmp.BeginInit();
-                            bmp.CacheOption = BitmapCacheOption.OnLoad;
-                            bmp.UriSource = new Uri(path, UriKind.Absolute);
-                            bmp.EndInit();
-                            bmp.Freeze();
-                            resolved = bmp;
-                            break;
-                        }
-                    }
-                    if (resolved != null)
-                        break;
+                    var bmp = new BitmapImage();
+                    bmp.BeginInit();
+                    bmp.CacheOption = BitmapCacheOption.OnLoad;
+                    bmp.UriSource = new Uri(path, UriKind.Absolute);
+                    bmp.EndInit();
+                    bmp.Freeze();
+                    resolved = bmp;
                 }
             }
             catch
@@ -78,28 +76,91 @@ public static class ItemSpriteProvider
         }
     }
 
+    /// <summary>Resolved absolute path of the item's icon file, or null — for GIF animation.</summary>
+    public static string? GetItemPath(string name)
+    {
+        string slug = SpriteProvider.Slug(name);
+        return slug.Length == 0 ? null : ResolvePath(slug);
+    }
+
     /// <summary>True if <paramref name="name"/> resolves to an icon (used to filter loot rows).</summary>
-    public static bool Has(string name) => GetItem(name) != null;
+    public static bool Has(string name) => GetItemPath(name) != null;
+
+    private static string? ResolvePath(string slug)
+    {
+        string dir = ResolveDirectory();
+        foreach (string candidate in SlugCandidates(slug))
+        {
+            foreach (string ext in Extensions)
+            {
+                string path = Path.Combine(dir, candidate + ext);
+                if (File.Exists(path))
+                    return path;
+            }
+        }
+        return null;
+    }
 
     /// <summary>
-    /// The exact slug first, then a few naive singular forms so plural loot names ("...s", "...es",
-    /// "...ies") still match a singular item file. Order matters: the exact form must win.
+    /// The exact slug, then singular variants — trying every candidate form of the last word, the
+    /// first word, and an all-words primary form. Each word can singularize more than one way
+    /// ("oranges" -> "orange" via drop-s, "boxes" -> "box" via drop-es), so all forms are tried and
+    /// the first that maps to an existing file wins.
     /// </summary>
     private static IEnumerable<string> SlugCandidates(string slug)
     {
-        yield return slug;
+        var result = new List<string>();
+        void Add(string s)
+        {
+            if (!result.Contains(s))
+                result.Add(s);
+        }
 
-        // "berries" -> "berry"
-        if (slug.EndsWith("ies", StringComparison.Ordinal) && slug.Length > 3)
-            yield return slug.Substring(0, slug.Length - 3) + "y";
+        Add(slug);
+        string[] words = slug.Split('_');
+        if (words.Length == 1)
+        {
+            foreach (string f in SingularForms(words[0]))
+                Add(f);
+            return result;
+        }
 
-        // "boxes"/"leeches" -> "box"/"leech"
-        if (slug.EndsWith("es", StringComparison.Ordinal) && slug.Length > 2)
-            yield return slug.Substring(0, slug.Length - 2);
+        // every singular form of the last word ("broken helmets" -> "broken helmet")
+        foreach (string f in SingularForms(words[^1]))
+        {
+            string[] w = (string[])words.Clone();
+            w[^1] = f;
+            Add(string.Join('_', w));
+        }
+        // every singular form of the first word ("veins of ore" -> "vein of ore")
+        foreach (string f in SingularForms(words[0]))
+        {
+            string[] w = (string[])words.Clone();
+            w[0] = f;
+            Add(string.Join('_', w));
+        }
+        // all words -> their primary singular form ("wimp teeth chain" -> "wimp tooth chain")
+        Add(string.Join('_', words.Select(w => SingularForms(w).First())));
+        return result;
+    }
 
-        // "helmets"/"coins" -> "helmet"/"coin"  (the common case)
-        if (slug.EndsWith("s", StringComparison.Ordinal) && slug.Length > 1)
-            yield return slug.Substring(0, slug.Length - 1);
+    /// <summary>Ordered candidate singular forms of one word; primary (drop-s / irregular) first.</summary>
+    private static IEnumerable<string> SingularForms(string word)
+    {
+        if (word.Length < 2)
+        {
+            yield return word;
+            yield break;
+        }
+        if (Irregular.TryGetValue(word, out string? irr))
+            yield return irr;
+        if (word.EndsWith("ies", StringComparison.Ordinal) && word.Length > 3)
+            yield return word.Substring(0, word.Length - 3) + "y";
+        if (word.EndsWith("s", StringComparison.Ordinal))
+            yield return word.Substring(0, word.Length - 1);            // drop s: oranges->orange, coins->coin
+        if (word.EndsWith("es", StringComparison.Ordinal) && word.Length > 2)
+            yield return word.Substring(0, word.Length - 2);            // drop es: boxes->box, torches->torch
+        yield return word;                                             // unchanged (not a plural)
     }
 
     private static string ResolveDirectory()

@@ -344,23 +344,6 @@
                                          ItemContainerStyle="{StaticResource ResultItem}"
                                          MouseLeftButtonUp="RareResults_MouseLeftButtonUp"/>
                             </Grid>
-                            <!-- Live creature-spawn source: tibiaroute.com (fetched once per launch,
-                                 cached). Manual refresh + "atualizado em ..." status. Third-party
-                                 source, may change; falls back to the bundled monster_spawns.dat. -->
-                            <Grid Margin="0,8,0,0">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBlock x:Name="SpawnRefreshStatus" Grid.Column="0" FontSize="10"
-                                           VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,8,0"
-                                           Foreground="{StaticResource TextSecondaryBrush}"
-                                           Text="usando dados internos (.dat)"/>
-                                <Button x:Name="SpawnRefreshButton" Grid.Column="1" Style="{StaticResource MiniButton}"
-                                        Content="Atualizar criaturas"
-                                        ToolTip="Buscar spawns de criaturas atualizados em tibiaroute.com (fonte externa)"
-                                        Click="SpawnRefreshButton_Click"/>
-                            </Grid>
                         </StackPanel>
                     </Border>
 
