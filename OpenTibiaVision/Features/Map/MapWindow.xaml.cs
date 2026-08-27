@@ -65,6 +65,12 @@ public partial class MapWindow : Window
     private bool _suppressRareSearchChanged;
     private System.Threading.CancellationTokenSource? _lootCts;
 
+    // Controllable clocks for the result-marker pulses (RepeatBehavior.Forever). Kept so the
+    // pulses can be paused when the map is hidden or unfocused, otherwise they drive the GPU every
+    // frame even while the user is in the game. Cleared whenever the marker layer is rebuilt.
+    private readonly List<System.Windows.Media.Animation.ClockController> _pulseClocks = new();
+    private bool _animPaused;
+
     private Canvas? _spawnClusterHost;
     private Path? _spawnDotBright;
     private Path? _spawnDotDim;
@@ -162,6 +168,11 @@ public partial class MapWindow : Window
 
         Loaded += MapWindow_Loaded;
         Closing += MapWindow_Closing;
+        // Pause the forever-looping marker pulses whenever the map is not the focused, visible
+        // window (user in the game / map hidden) so it stops repainting the GPU every frame.
+        Activated += (_, _) => UpdateAnimationState();
+        Deactivated += (_, _) => UpdateAnimationState();
+        IsVisibleChanged += (_, _) => UpdateAnimationState();
         SizeChanged += delegate { ClampPan(); ApplyRailDensity(); };
         MainBorder.Loaded += delegate { UpdateContentClip(); };
         MainBorder.SizeChanged += delegate { UpdateContentClip(); };
@@ -572,6 +583,7 @@ public partial class MapWindow : Window
     private void RefreshMarkers()
     {
         MarkerLayer.Children.Clear();
+        _pulseClocks.Clear();
         _iconPathSprites.Clear();
         _spawnClusterHost = null;
         _spawnDotBright = _spawnDotDim = _spawnDotGlow = null;
@@ -679,9 +691,50 @@ public partial class MapWindow : Window
             _markerStore.Remove(pin.Id);
     }
 
-    private static void AddPinPulse(Canvas host) => AddPulse(host, Color.FromRgb(byte.MaxValue, 127, 0));
+    /// <summary>
+    /// Applies an animation as a controllable clock (instead of BeginAnimation) so the marker
+    /// pulses can be paused/resumed. A forever-looping animation otherwise keeps the composition
+    /// thread repainting every frame even when the map is unfocused or hidden.
+    /// </summary>
+    private void Animate(System.Windows.Media.Animation.IAnimatable target, DependencyProperty prop,
+                         System.Windows.Media.Animation.AnimationTimeline anim)
+    {
+        var clock = anim.CreateClock();
+        target.ApplyAnimationClock(prop, clock);
+        if (clock.Controller is { } controller)
+        {
+            _pulseClocks.Add(controller);
+            if (_animPaused)
+                controller.Pause();
+        }
+    }
 
-    private static void AddPulse(Canvas host, Color accent, double sizeScale = 1.0)
+    /// <summary>Pause marker pulses while the window is hidden or not focused; resume otherwise.</summary>
+    private void UpdateAnimationState()
+    {
+        bool shouldPause = !(IsVisible && IsActive);
+        if (shouldPause == _animPaused)
+            return;
+        _animPaused = shouldPause;
+        foreach (var controller in _pulseClocks)
+        {
+            try
+            {
+                if (shouldPause)
+                    controller.Pause();
+                else
+                    controller.Resume();
+            }
+            catch
+            {
+                // a controller whose element was already torn down is harmless to skip
+            }
+        }
+    }
+
+    private void AddPinPulse(Canvas host) => AddPulse(host, Color.FromRgb(byte.MaxValue, 127, 0));
+
+    private void AddPulse(Canvas host, Color accent, double sizeScale = 1.0)
     {
         var ellipse = new Ellipse
         {
@@ -699,13 +752,13 @@ public partial class MapWindow : Window
             RepeatBehavior = RepeatBehavior.Forever,
             EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut }
         };
-        ellipse.BeginAnimation(UIElement.OpacityProperty, animation);
+        Animate(ellipse, UIElement.OpacityProperty, animation);
         host.Children.Add(ellipse);
         host.Children.Add(CreateRingPulse(TimeSpan.Zero, accent, sizeScale));
         host.Children.Add(CreateRingPulse(TimeSpan.FromMilliseconds(900.0), accent, sizeScale));
     }
 
-    private static Canvas CreateRingPulse(TimeSpan delay, Color accent, double sizeScale = 1.0)
+    private Canvas CreateRingPulse(TimeSpan delay, Color accent, double sizeScale = 1.0)
     {
         TimeSpan dur = TimeSpan.FromMilliseconds(1800.0);
         var scale = new ScaleTransform(0.4, 0.4);
@@ -723,11 +776,11 @@ public partial class MapWindow : Window
         fade.KeyFrames.Add(new LinearDoubleKeyFrame(1.0, KeyTime.FromPercent(0.45)));
         fade.KeyFrames.Add(new LinearDoubleKeyFrame(0.0, KeyTime.FromPercent(1.0)));
         var recolor = new ColorAnimation(accent, Colors.White, dur) { BeginTime = delay, RepeatBehavior = RepeatBehavior.Forever };
-        scale.BeginAnimation(ScaleTransform.ScaleXProperty, grow);
-        scale.BeginAnimation(ScaleTransform.ScaleYProperty, grow);
-        ring1.BeginAnimation(UIElement.OpacityProperty, fade);
-        ring2.BeginAnimation(UIElement.OpacityProperty, fade);
-        accentBrush.BeginAnimation(SolidColorBrush.ColorProperty, recolor);
+        Animate(scale, ScaleTransform.ScaleXProperty, grow);
+        Animate(scale, ScaleTransform.ScaleYProperty, grow);
+        Animate(ring1, UIElement.OpacityProperty, fade);
+        Animate(ring2, UIElement.OpacityProperty, fade);
+        Animate(accentBrush, SolidColorBrush.ColorProperty, recolor);
         return new Canvas { IsHitTestVisible = false, Children = { ring1, ring2 } };
 
         Ellipse MakeRing(Brush stroke, double thickness)
@@ -834,7 +887,7 @@ public partial class MapWindow : Window
         _spawnDotBright.Stroke = white;
         _spawnDotDim.Fill = null;
         _spawnDotDim.Stroke = fill;
-        _spawnDotGlow.BeginAnimation(UIElement.OpacityProperty, new DoubleAnimation(0.15, 0.5, TimeSpan.FromMilliseconds(900.0))
+        Animate(_spawnDotGlow, UIElement.OpacityProperty, new DoubleAnimation(0.15, 0.5, TimeSpan.FromMilliseconds(900.0))
         {
             AutoReverse = true,
             RepeatBehavior = RepeatBehavior.Forever,
@@ -1760,11 +1813,11 @@ public partial class MapWindow : Window
         }
     }
 
-    private static void ApplyDirectionFlow(Line line)
+    private void ApplyDirectionFlow(Line line)
     {
         line.StrokeDashArray = new DoubleCollection { 3.0, 2.2 };
         var animation = new DoubleAnimation(0.0, -5.2, TimeSpan.FromMilliseconds(520.0)) { RepeatBehavior = RepeatBehavior.Forever };
-        line.BeginAnimation(Shape.StrokeDashOffsetProperty, animation);
+        Animate(line, Shape.StrokeDashOffsetProperty, animation);
     }
 
     private UIElement CreateFloorChangeLabel(double mapX, double mapY, string text, Brush colour)
