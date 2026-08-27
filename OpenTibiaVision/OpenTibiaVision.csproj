@@ -21,7 +21,15 @@
          app whose PerMonitorV2 awareness is (correctly) declared in app.manifest; WinForms is
          only referenced for the tray icon. Suppress the WinForms-specific advice. -->
     <NoWarn>$(NoWarn);WFAC010</NoWarn>
+    <!-- Promote the NAudio sound backend (Features/Audio/NAudioSoundBackend.cs, gated on
+         OTV_NAUDIO) to primary. Without this the app runs on the WPF MediaPlayer fallback;
+         SoundEngine.CreateDefaultBackend() prefers NAudio and falls back on any failure. -->
+    <DefineConstants>$(DefineConstants);OTV_NAUDIO</DefineConstants>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NAudio" Version="2.2.1" />
+  </ItemGroup>
 
   <!-- UseWindowsForms + ImplicitUsings would add System.Windows.Forms and System.Drawing as
        GLOBAL usings, which collide with WPF's System.Windows types (Application, MessageBox,
