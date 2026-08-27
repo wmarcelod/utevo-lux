@@ -1,0 +1,12 @@
+<!--
+  Single entry point merged by App.xaml. Each sub-dictionary is self-contained (Styles merges
+  Brushes merges DesignTokens), so this file only needs Styles + Icons; the token and brush
+  keys surface transitively. This ordering also makes lazy StaticResource realization safe.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="/Theming/Styles.xaml"/>
+        <ResourceDictionary Source="/Theming/Icons.xaml"/>
+    </ResourceDictionary.MergedDictionaries>
+</ResourceDictionary>

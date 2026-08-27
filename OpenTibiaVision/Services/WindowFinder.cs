@@ -88,4 +88,55 @@ public static class WindowFinder
 
         return windows;
     }
+
+    // ---- Client <-> screen rects (physical px) ----
+
+    /// <summary>
+    /// The window's CLIENT area in physical screen pixels: GetClientRect gives the size,
+    /// ClientToScreen(0,0) gives the top-left. This is the Tibia game viewport we crop against
+    /// (matches DWM fSourceClientAreaOnly), unlike the extended frame bounds which include the
+    /// title bar / borders. Returns an empty RECT if the window handle is invalid.
+    /// </summary>
+    public static RECT GetClientBoundsInScreen(IntPtr hwnd)
+    {
+        if (hwnd == IntPtr.Zero)
+            return default;
+
+        if (!NativeMethods.GetClientRect(hwnd, out RECT client))
+            return default;
+
+        var origin = new NativeMethods.POINT { X = 0, Y = 0 };
+        if (!NativeMethods.ClientToScreen(hwnd, ref origin))
+            return default;
+
+        return new RECT(origin.X, origin.Y, origin.X + client.Width, origin.Y + client.Height);
+    }
+
+    // ---- Extended-style toggles ----
+
+    /// <summary>Add or clear one or more WS_EX_* bits on a window.</summary>
+    public static void SetExStyle(IntPtr hwnd, long bits, bool on)
+    {
+        if (hwnd == IntPtr.Zero)
+            return;
+
+        long ex = NativeMethods.GetWindowLongEx(hwnd, NativeMethods.GWL_EXSTYLE);
+        long updated = on ? ex | bits : ex & ~bits;
+        if (updated != ex)
+            NativeMethods.SetWindowLongEx(hwnd, NativeMethods.GWL_EXSTYLE, updated);
+    }
+
+    /// <summary>Click-through: WS_EX_LAYERED | WS_EX_TRANSPARENT (mouse falls through to the game).</summary>
+    public static void SetClickThrough(IntPtr hwnd, bool on)
+    {
+        SetExStyle(hwnd, NativeMethods.WS_EX_LAYERED | NativeMethods.WS_EX_TRANSPARENT, on);
+        if (on)
+            NativeMethods.SetLayeredWindowAttributes(hwnd, 0, 255, NativeMethods.LWA_ALPHA);
+    }
+
+    /// <summary>No-activate + tool window: overlay never steals focus and never shows in Alt+Tab.</summary>
+    public static void SetOverlayChrome(IntPtr hwnd, bool on)
+    {
+        SetExStyle(hwnd, NativeMethods.WS_EX_NOACTIVATE | NativeMethods.WS_EX_TOOLWINDOW, on);
+    }
 }

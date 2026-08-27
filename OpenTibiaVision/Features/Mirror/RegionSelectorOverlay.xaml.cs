@@ -6,27 +6,27 @@ using System.Windows.Interop;
 using OpenTibiaVision.Models;
 using OpenTibiaVision.Services;
 
-namespace OpenTibiaVision.Views;
+namespace OpenTibiaVision.Features.Mirror;
 
 /// <summary>
-/// Full-source overlay for drag-selecting a crop region. The window is positioned in
-/// physical pixels directly over the source window's visible frame (via SetWindowPos), so
-/// the dragged rectangle maps 1:1 onto the source. The result is returned as fractions of
-/// the overlay area, which the caller scales to source pixels (see RectFraction).
+/// Full-viewport overlay for drag-selecting a crop region. Positioned in physical pixels
+/// directly over the source window's CLIENT area (the game viewport) via SetWindowPos, so the
+/// dragged rectangle maps 1:1 onto the source client. The result is returned as fractions of
+/// the client area; the caller scales those to client-relative source pixels.
 /// </summary>
 public partial class RegionSelectorOverlay : Window
 {
-    private readonly RECT _sourceBoundsPhysical;
+    private readonly RECT _clientBoundsPhysical;
     private Point _start;
     private bool _dragging;
 
     /// <summary>Set on confirm; null if cancelled.</summary>
     public RectFraction? Result { get; private set; }
 
-    public RegionSelectorOverlay(RECT sourceBoundsPhysical)
+    public RegionSelectorOverlay(RECT clientBoundsPhysical)
     {
         InitializeComponent();
-        _sourceBoundsPhysical = sourceBoundsPhysical;
+        _clientBoundsPhysical = clientBoundsPhysical;
     }
 
     protected override void OnSourceInitialized(EventArgs e)
@@ -34,15 +34,13 @@ public partial class RegionSelectorOverlay : Window
         base.OnSourceInitialized(e);
 
         IntPtr hwnd = new WindowInteropHelper(this).Handle;
-        // Place/size the overlay exactly over the source in PHYSICAL pixels. Doing this via
-        // SetWindowPos avoids WPF's DIP-based Left/Top interpretation on mixed-DPI setups.
         NativeMethods.SetWindowPos(
             hwnd,
             NativeMethods.HWND_TOPMOST,
-            _sourceBoundsPhysical.Left,
-            _sourceBoundsPhysical.Top,
-            _sourceBoundsPhysical.Width,
-            _sourceBoundsPhysical.Height,
+            _clientBoundsPhysical.Left,
+            _clientBoundsPhysical.Top,
+            _clientBoundsPhysical.Width,
+            _clientBoundsPhysical.Height,
             NativeMethods.SWP_SHOWWINDOW);
 
         Activate();
@@ -67,7 +65,6 @@ public partial class RegionSelectorOverlay : Window
     protected override void OnMouseMove(MouseEventArgs e)
     {
         base.OnMouseMove(e);
-
         if (!_dragging)
             return;
 
@@ -86,21 +83,17 @@ public partial class RegionSelectorOverlay : Window
     protected override void OnMouseLeftButtonUp(MouseButtonEventArgs e)
     {
         base.OnMouseLeftButtonUp(e);
-
         if (!_dragging)
             return;
 
         _dragging = false;
         ReleaseMouseCapture();
-
-        Point end = e.GetPosition(RootCanvas);
-        Finish(end);
+        Finish(e.GetPosition(RootCanvas));
     }
 
     protected override void OnKeyDown(KeyEventArgs e)
     {
         base.OnKeyDown(e);
-
         if (e.Key == Key.Escape)
         {
             Result = null;
@@ -133,7 +126,6 @@ public partial class RegionSelectorOverlay : Window
             Clamp01(w / canvasWidth),
             Clamp01(h / canvasHeight));
 
-        // Ignore an accidental click / tiny selection.
         Result = fraction.IsUsable ? fraction : null;
         DialogResult = Result is not null;
         Close();

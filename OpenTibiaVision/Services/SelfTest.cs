@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Interop;
+using OpenTibiaVision.Core;
 using OpenTibiaVision.Models;
 
 namespace OpenTibiaVision.Services;
@@ -37,12 +38,14 @@ public static class SelfTest
             IntPtr tibia = WindowFinder.FindTibia();
             sb.AppendLine($"[OK] FindTibia -> {(tibia == IntPtr.Zero ? "not running" : "hwnd " + tibia.ToInt64().ToString("X"))}");
 
-            // 3) DWM extended-frame-bounds + DPI (interop marshalling of RECT / uint).
+            // 3) DWM frame bounds + CLIENT bounds + DPI (interop marshalling of RECT / uint).
             if (windows.Count > 0)
             {
-                RECT bounds = DwmThumbnail.GetSourceBounds(windows[0].Hwnd);
+                RECT frame = DwmThumbnail.GetSourceBounds(windows[0].Hwnd);
+                RECT client = WindowFinder.GetClientBoundsInScreen(windows[0].Hwnd);
                 double scale = NativeMethods.GetScaleForWindow(windows[0].Hwnd);
-                sb.AppendLine($"[OK] GetSourceBounds(first) -> {bounds.Width}x{bounds.Height} px at scale {scale:0.00}");
+                sb.AppendLine($"[OK] bounds(first) -> frame {frame.Width}x{frame.Height}, " +
+                              $"client {client.Width}x{client.Height} at scale {scale:0.00}");
             }
 
             // 4) JSON round-trip of the persistence model (in-memory, non-destructive).
@@ -56,12 +59,33 @@ public static class SelfTest
             List<RegionConfig>? back = JsonSerializer.Deserialize<List<RegionConfig>>(json);
             sb.AppendLine($"[OK] RegionConfig JSON round-trip -> {back?.Count ?? 0} item, crop {back?[0].CropWidth}x{back?[0].CropHeight}");
 
-            // 5) Read the real store (does not modify it).
-            List<RegionConfig> existing = RegionStore.Load();
-            sb.AppendLine($"[OK] RegionStore.Load -> {existing.Count} saved region(s)");
-            sb.AppendLine($"       store path: {RegionStore.FilePath}");
+            // 5) Atomic settings store round-trip in a temp dir (does not touch the real store).
+            string tempDir = Path.Combine(Path.GetTempPath(), "otv-selftest-" + Guid.NewGuid().ToString("N"));
+            try
+            {
+                using var store = new SettingsStore(Path.Combine(tempDir, "settings.json"));
+                store.Set("k.int", 42);
+                store.Set("k.regions", new List<RegionConfig> { sample });
+                store.Flush();
+                int roundInt = store.Get("k.int", 0);
+                var roundRegions = store.Get("k.regions", new List<RegionConfig>());
+                bool bakOrFileExists = File.Exists(store.FilePath) || File.Exists(store.FilePath + ".bak");
+                sb.AppendLine($"[OK] SettingsStore atomic round-trip -> int={roundInt}, regions={roundRegions.Count}, fileWritten={bakOrFileExists}");
 
-            // 6) Full DWM thumbnail cycle against a real source, into an off-screen host
+                using var profiles = new ProfileService(store, Path.Combine(tempDir, "Profiles"));
+                profiles.Create("SelfTestB");
+                profiles.Switch("SelfTestB");
+                sb.AppendLine($"[OK] ProfileService -> active={profiles.ActiveProfile}, count={profiles.Profiles.Count}");
+            }
+            finally
+            {
+                try { if (Directory.Exists(tempDir)) Directory.Delete(tempDir, recursive: true); } catch { }
+            }
+
+            // 6) Read the real store path (does not modify it).
+            sb.AppendLine($"[OK] store root: {SettingsStore.DefaultRoot}");
+
+            // 7) Full DWM thumbnail cycle against a real source, into an off-screen host
             //    HWND (created but never shown). Proves register/query/update/unregister all
             //    return S_OK - i.e. the live-mirror mechanism itself works. Only the visible
             //    pixels can't be asserted headlessly.

@@ -3,13 +3,13 @@ using System;
 namespace OpenTibiaVision.Models;
 
 /// <summary>
-/// Serializable description of one mirror region. This is what RegionStore reads/writes
-/// to regions.json.
+/// Serializable description of one mirror region, persisted via the shared ISettingsStore.
 ///
-/// Coordinate conventions:
-///  - Crop* are PHYSICAL pixels relative to the source window's visible frame
-///    (see DwmThumbnail.GetSourceBounds). They feed rcSource of the DWM thumbnail.
-///  - Mirror* are WPF DIPs (device-independent units), the mirror window's bounds.
+/// Coordinate conventions (all PHYSICAL pixels — conversion happens only at the WPF boundary):
+///  - Crop* are physical pixels relative to the source window's CLIENT area (the game
+///    viewport), matching DWM fSourceClientAreaOnly. They feed rcSource of the thumbnail.
+///  - Mirror* are the mirror window's bounds in PHYSICAL screen pixels; the window is placed
+///    with SetWindowPos and read back with GetWindowRect, so mixed-DPI setups stay exact.
 ///
 /// The source window handle is not stable across restarts, so we persist the title and
 /// process name and re-match on load (best effort).
@@ -23,17 +23,17 @@ public class RegionConfig
     public string SourceTitle { get; set; } = "";
     public string SourceProcess { get; set; } = "";
 
-    // Crop rectangle in physical pixels, relative to the source window's visible frame.
+    // Crop rectangle in physical pixels, relative to the source window's CLIENT area.
     public int CropLeft { get; set; }
     public int CropTop { get; set; }
     public int CropRight { get; set; }
     public int CropBottom { get; set; }
 
-    // Mirror window placement in WPF DIPs.
-    public double MirrorLeft { get; set; } = 120;
-    public double MirrorTop { get; set; } = 120;
-    public double MirrorWidth { get; set; } = 400;
-    public double MirrorHeight { get; set; } = 300;
+    // Mirror window placement in PHYSICAL screen pixels.
+    public int MirrorLeft { get; set; } = 240;
+    public int MirrorTop { get; set; } = 240;
+    public int MirrorWidth { get; set; } = 400;
+    public int MirrorHeight { get; set; } = 300;
 
     public bool Locked { get; set; }
     public bool Visible { get; set; }

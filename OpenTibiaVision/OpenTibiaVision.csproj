@@ -6,6 +6,9 @@
          machine. If that pack were missing, switch this to net10.0-windows (SDK 10 has it). -->
     <TargetFramework>net8.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
+    <!-- WinForms is enabled ONLY for System.Windows.Forms.NotifyIcon (system tray). WPF has no
+         native tray icon; NotifyIcon coexists with the WPF dispatcher message loop. -->
+    <UseWindowsForms>true</UseWindowsForms>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
@@ -14,6 +17,19 @@
     <!-- PerMonitorV2 DPI awareness declared in app.manifest so GetDpiForWindow and the
          DWM thumbnail rect math stay consistent across mixed-DPI monitors. -->
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- WFAC010: the WinForms analyzer wants DPI set via ApplicationHighDpiMode. This is a WPF
+         app whose PerMonitorV2 awareness is (correctly) declared in app.manifest; WinForms is
+         only referenced for the tray icon. Suppress the WinForms-specific advice. -->
+    <NoWarn>$(NoWarn);WFAC010</NoWarn>
   </PropertyGroup>
+
+  <!-- UseWindowsForms + ImplicitUsings would add System.Windows.Forms and System.Drawing as
+       GLOBAL usings, which collide with WPF's System.Windows types (Application, MessageBox,
+       HorizontalAlignment, Point, ...). Remove them: TrayIcon.cs uses explicit aliases instead.
+       This is config, not a file include. -->
+  <ItemGroup>
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+  </ItemGroup>
 
 </Project>

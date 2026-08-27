@@ -2,20 +2,21 @@ using System;
 using System.Linq;
 using System.Windows;
 using System.Windows.Threading;
+using OpenTibiaVision.Core;
 using OpenTibiaVision.Services;
-using OpenTibiaVision.Views;
+using OpenTibiaVision.Shell;
 
 namespace OpenTibiaVision;
 
 public partial class App : Application
 {
+    private AppServices? _services;
+
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
 
-        // Headless smoke test: exercise the interop + services without the GUI, write a
-        // report, and exit. Used to verify the app's runtime plumbing (P/Invoke marshalling,
-        // DWM/DPI calls, JSON) on machines/CI without driving the window. Usage:
+        // Headless smoke test: exercise interop + services without the GUI, write a report, exit.
         //   OpenTibiaVision.exe --selftest [output-file]
         if (e.Args.Contains("--selftest", StringComparer.OrdinalIgnoreCase))
         {
@@ -26,22 +27,31 @@ public partial class App : Application
             return;
         }
 
-        // In M1 we surface unexpected errors rather than crash silently. A real release
-        // would log these; here a message box is enough to prove the app is running.
+        // Surface unexpected UI-thread errors rather than crash silently.
         DispatcherUnhandledException += OnDispatcherUnhandledException;
 
-        var main = new MainWindow();
-        MainWindow = main;
-        main.Show();
+        bool startMinimized = e.Args.Contains(StartupRegistration.StartupArg, StringComparer.OrdinalIgnoreCase);
+
+        _services = new AppServices();
+
+        var shell = new ShellWindow(_services, startMinimized);
+        MainWindow = shell;
+        shell.Show();
+    }
+
+    protected override void OnExit(ExitEventArgs e)
+    {
+        _services?.Dispose();
+        base.OnExit(e);
     }
 
     private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
-        MessageBox.Show(
-            e.Exception.Message,
+        UI.ThemedMessageBox.Show(
+            MainWindow,
             "OpenTibiaVision - erro inesperado",
-            MessageBoxButton.OK,
-            MessageBoxImage.Warning);
+            e.Exception.Message,
+            UI.ThemedMessageBox.Buttons.Ok);
         e.Handled = true;
     }
 }

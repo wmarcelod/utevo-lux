@@ -1,31 +1,30 @@
 using System;
-using System.Windows;
 using System.Windows.Input;
+using OpenTibiaVision.Core;
 using OpenTibiaVision.Models;
 using OpenTibiaVision.Services;
-using OpenTibiaVision.Views;
+using OpenTibiaVision.ViewModels;
 
-namespace OpenTibiaVision.ViewModels;
+namespace OpenTibiaVision.Features.Mirror;
 
 /// <summary>
-/// One row in the region list. Owns the (optional) live MirrorWindow and exposes the
-/// Lock/Unlock, Show/Hide and Remove commands. MVVM-lite: the view model manages its own
-/// window for M1 simplicity.
+/// One row in the regions dashboard. Owns the (optional) live <see cref="MirrorWindow"/> and
+/// exposes Lock/Unlock, Show/Hide and Remove. The mirror window places and persists itself in
+/// physical pixels via the shared config object.
 /// </summary>
-public class RegionViewModel : ViewModelBase
+public sealed class RegionRowViewModel : ViewModelBase
 {
+    private readonly IAppServices _services;
     private readonly RegionConfig _config;
     private IntPtr _sourceHwnd;
     private MirrorWindow? _mirror;
 
-    /// <summary>Raised when the user removes this region.</summary>
-    public event Action<RegionViewModel>? RemoveRequested;
-
-    /// <summary>Raised whenever persisted state changes (bounds, lock, visibility).</summary>
+    public event Action<RegionRowViewModel>? RemoveRequested;
     public event Action? Changed;
 
-    public RegionViewModel(RegionConfig config, IntPtr sourceHwnd)
+    public RegionRowViewModel(IAppServices services, RegionConfig config, IntPtr sourceHwnd)
     {
+        _services = services;
         _config = config;
         _sourceHwnd = sourceHwnd;
 
@@ -66,7 +65,6 @@ public class RegionViewModel : ViewModelBase
     }
 
     public bool HasSource => _sourceHwnd != IntPtr.Zero;
-
     public bool Locked => _config.Locked;
     public bool Visible => _config.Visible;
 
@@ -74,18 +72,25 @@ public class RegionViewModel : ViewModelBase
     public string VisibleButtonText => _config.Visible ? "Ocultar" : "Mostrar";
 
     public string DisplayInfo =>
-        $"{_config.SourceTitle}  |  crop {_config.CropWidth}x{_config.CropHeight}px" +
+        $"{_config.SourceTitle}  |  recorte {_config.CropWidth}x{_config.CropHeight}px" +
         (HasSource ? "" : "  (fonte indisponivel)");
 
-    // ---- Commands ----
+    // ---- commands ----
 
-    private void ToggleLock()
+    public void ToggleLock()
     {
         _config.Locked = !_config.Locked;
         _mirror?.ApplyLock(_config.Locked);
         OnPropertyChanged(nameof(Locked));
         OnPropertyChanged(nameof(LockButtonText));
         Changed?.Invoke();
+    }
+
+    public void SetLock(bool locked)
+    {
+        if (_config.Locked == locked)
+            return;
+        ToggleLock();
     }
 
     private void ToggleVisible()
@@ -102,29 +107,20 @@ public class RegionViewModel : ViewModelBase
         RemoveRequested?.Invoke(this);
     }
 
-    // ---- Mirror lifecycle ----
+    // ---- mirror lifecycle ----
 
     public void ShowMirror()
     {
         if (!HasSource)
         {
-            MessageBox.Show(
-                "Esta regiao nao tem uma janela fonte valida. Selecione a fonte e crie a regiao novamente.",
-                "OpenTibiaVision",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information);
+            _services.Info("OpenTibiaVision",
+                "Esta regiao nao tem uma janela fonte valida. Selecione a fonte e crie a regiao novamente.");
             return;
         }
 
         if (_mirror is null)
         {
-            _mirror = new MirrorWindow(_sourceHwnd, CurrentCrop())
-            {
-                Left = _config.MirrorLeft,
-                Top = _config.MirrorTop,
-                Width = _config.MirrorWidth,
-                Height = _config.MirrorHeight
-            };
+            _mirror = new MirrorWindow(_services, _sourceHwnd, CurrentCrop(), _config);
             _mirror.MirrorStateChanged += OnMirrorStateChanged;
             _mirror.Closed += OnMirrorClosed;
             _mirror.Show();
@@ -165,21 +161,10 @@ public class RegionViewModel : ViewModelBase
         }
     }
 
-    private void OnMirrorStateChanged()
-    {
-        if (_mirror is null)
-            return;
-
-        _config.MirrorLeft = _mirror.Left;
-        _config.MirrorTop = _mirror.Top;
-        _config.MirrorWidth = _mirror.Width;
-        _config.MirrorHeight = _mirror.Height;
-        Changed?.Invoke();
-    }
+    private void OnMirrorStateChanged() => Changed?.Invoke();
 
     private void OnMirrorClosed(object? sender, EventArgs e)
     {
-        // The window went away (e.g. closed by other means); reflect that in state.
         if (_mirror is not null)
         {
             _mirror = null;
