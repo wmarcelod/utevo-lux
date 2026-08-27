@@ -9,8 +9,7 @@ namespace UtevoLux.Features.Map;
 /// <summary>
 /// Indexes the <c>Minimap_Color_x_y_z.png</c> tile files (256x256 world px each) into per-floor
 /// buckets and computes the overall <see cref="MapBounds"/>. Tile lookup resolves against
-/// <c>Resources/minimap</c> next to the exe (build-copied Content). Ported faithfully from the
-/// original TibiaVision.
+/// <c>Resources/minimap</c> next to the exe (build-copied Content). Clean-room reimplementation.
 /// </summary>
 public class MapTileIndex
 {

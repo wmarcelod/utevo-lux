@@ -202,7 +202,7 @@ public sealed class ProfilesPageViewModel : ViewModelBase
         var dialog = new OpenFileDialog
         {
             Title = "Importar perfil",
-            Filter = "Perfil TibiaVision (*.tvprofile)|*.tvprofile|Perfil JSON (legado, *.json)|*.json",
+            Filter = "Perfil Utevo Lux (*.tvprofile)|*.tvprofile|Perfil JSON (legado, *.json)|*.json",
             Multiselect = false
         };
         if (!ShowDialog(dialog))
@@ -269,7 +269,7 @@ public sealed class ProfilesPageViewModel : ViewModelBase
         var dialog = new SaveFileDialog
         {
             Title = "Exportar perfil",
-            Filter = "Perfil TibiaVision (*.tvprofile)|*.tvprofile",
+            Filter = "Perfil Utevo Lux (*.tvprofile)|*.tvprofile",
             FileName = target.Name + ExportExtension
         };
         if (!ShowDialog(dialog))

@@ -1,8 +1,7 @@
 namespace UtevoLux.Features.Map;
 
 /// <summary>
-/// One waypoint of a <see cref="MapRoute"/> (world x, y, floor z). Ported faithfully from the
-/// original TibiaVision.
+/// One waypoint of a <see cref="MapRoute"/> (world x, y, floor z). Clean-room reimplementation.
 /// </summary>
 public class RoutePoint
 {

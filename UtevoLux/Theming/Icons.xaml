@@ -3,9 +3,9 @@
   Stretch="Uniform"/> so they stay crisp at any UI scale. Frozen for GPU caching.
   Feature modules expose their own Geometry (IFeatureModule.Icon); these are the shared set.
 
-  The nav glyphs are reconstructed to visually match the original TibiaVision icon set
+  The nav glyphs are reconstructed to visually match the original tool icon set
   (themes/tibiavisionicons.baml: Regions, Audio, Maps, Profiles, ObsTools, Settings,
-  Customization, Notes, GridOverlay, TibiaVisionLink). The original draws each as a layered
+  Customization, Notes, GridOverlay, Link). The original draws each as a layered
   stroke+accent-dot ControlTemplate; the shell here renders a single filled Path with one brush,
   so each icon is expressed as a filled silhouette (even-odd / F1 non-zero cut-outs give the
   outline look). Resource KEYS are unchanged so the shell + modules keep resolving.
@@ -14,7 +14,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options">
 
-    <!-- ===== Nav glyphs (match the original TibiaVision set) ===== -->
+    <!-- ===== Nav glyphs (match the original tool set) ===== -->
 
     <!-- Mirror / Regions: viewfinder corner brackets around a lens dot -->
     <Geometry x:Key="Icon.Mirror" po:Freeze="True">M4,4 L10,4 L10,6 L6,6 L6,10 L4,10 Z M20,4 L20,10 L18,10 L18,6 L14,6 L14,4 Z M20,20 L14,20 L14,18 L18,18 L18,14 L20,14 Z M4,20 L4,14 L6,14 L6,18 L10,18 L10,20 Z M9.4,12 A2.6,2.6 0 1 0 14.6,12 A2.6,2.6 0 1 0 9.4,12 Z</Geometry>

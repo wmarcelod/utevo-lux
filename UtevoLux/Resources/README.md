@@ -1,43 +1,38 @@
-# Resources — TibiaMaps runtime assets
+# Resources — map runtime assets
 
-These folders hold the runtime data the TibiaMaps feature reads at startup. They are **copied
-from the installed original TibiaVision** and are intentionally **not committed to git** (see
-`UtevoLux/.gitignore`). Only this README is tracked.
+These folders hold the runtime data the map feature reads at startup. They are **not committed to
+git** (see `UtevoLux/.gitignore`) — each install populates them locally. Only this README is tracked.
 
 ## What lives here
 
-| Folder      | Contents                                                            | Count |
-|-------------|--------------------------------------------------------------------|-------|
-| `minimap/`  | `Minimap_Color_x_y_z.png` tiles (256x256 world px each)             | 1094  |
-| `map/`      | `monster_spawns.dat`, `npcs.json`, `rare_creatures.json`, `rare_creatures_manual.json` | 4 |
-| `creatures/`| creature sprite gifs (`<slug>.gif`)                                 | 996   |
-| `npcs/`     | NPC sprite gifs (`<slug>.gif`)                                      | 1236  |
+| Folder            | Contents                                                                 |
+|-------------------|--------------------------------------------------------------------------|
+| `minimap/`        | `Minimap_Color_x_y_z.png` world tiles (a bundled snapshot fallback)       |
+| `map/`            | `monster_spawns.dat` (+ `npcs.json`, `rare_creatures*.json`) — spawn fallback |
+| `creatures/`      | creature sprite gifs (`<slug>.gif`)                                       |
+| `npcs/`           | NPC sprite gifs (`<slug>.gif`)                                            |
+| `items/`          | item icon gifs/pngs (`<slug>.gif|png`) + `_manifest.json`                 |
+| `Icons/MapMarkers/` | 20 `marker_NN.png` pin icons (0..19, matching the game's map-mark icons) |
 
-`monster_spawns.dat` is an AES-256-CBC-over-gzip-over-binary container decoded by
-`Features/Map/SpawnDataCodec.cs`.
+## Where the assets come from
 
-## How they got here
+At **runtime**, the map prefers live/local sources and only falls back to the bundled snapshots here:
 
-Copied with robocopy from the installed TibiaVision:
+- **Minimap** — prefers the player's own explored minimap from an installed Tibia client
+  (`GameMinimapLocator`, `%LOCALAPPDATA%\Tibia\packages\Tibia\minimap`); falls back to `minimap/`.
+- **Creature spawns** — prefers the live `tibiaroute.com` dataset (fetched once per launch, cached
+  to `%APPDATA%\UtevoLux`); falls back to `map/monster_spawns.dat`.
+- **Creature loot** — fetched from the TibiaData API (`api.tibiadata.com`), cached to `%APPDATA%`.
 
-```
-robocopy "C:\Program Files\TibiaVision\Resources\minimap"   ".\Resources\minimap"   /E
-robocopy "C:\Program Files\TibiaVision\Resources\map"       ".\Resources\map"       /E
-robocopy "C:\Program Files\TibiaVision\Resources\creatures" ".\Resources\creatures" /E
-robocopy "C:\Program Files\TibiaVision\Resources\npcs"      ".\Resources\npcs"      /E
-```
-
-To refresh after a TibiaVision update, re-run the same commands.
+The **sprite banks** (`creatures/`, `npcs/`, `items/`) are extracted from the current official Tibia
+client's asset files (`appearances.dat` + sprite sheets; creature name↔outfit mapping from
+`staticdata.dat`) and assembled into per-name gifs/pngs. `monster_spawns.dat` is an
+AES-256-CBC-over-gzip container decoded by `Features/Map/SpawnDataCodec.cs`.
 
 ## Build wiring
 
-`UtevoLux.csproj` includes `Resources\**\*` as `Content` with
-`CopyToOutputDirectory=PreserveNewest`, so the built app gets `Resources\minimap` etc. next to
-the exe. The map services resolve assets via `AppDomain.CurrentDomain.BaseDirectory\Resources\...`
-(with a `Directory.GetCurrentDirectory()` fallback), matching the original's lookup.
-
-## Not copied
-
-`Icons/MapMarkers/` (the 20 `marker_NN.png` pin icons) exists in the original but is **not** part
-of this copy. Without it, `MarkerIconProvider` falls back to a drawn dot in the fork's blue accent
-(#FF3FA9F5). Copy that folder too if the real pin icons are wanted.
+`UtevoLux.csproj` includes `Resources\**\*` as `Content` with `CopyToOutputDirectory=PreserveNewest`,
+so the built app gets `Resources\...` next to the exe. Map services resolve assets via
+`AppDomain.CurrentDomain.BaseDirectory\Resources\...` (with a `Directory.GetCurrentDirectory()`
+fallback). Missing sprites degrade gracefully (a name with no file simply renders no icon; a missing
+marker icon falls back to a drawn blue dot).

@@ -4,8 +4,7 @@ using System.Collections.Generic;
 namespace UtevoLux.Features.Map;
 
 /// <summary>
-/// Store of user map routes. Raises <see cref="RoutesChanged"/> after any mutation. Ported
-/// faithfully from the original TibiaVision.
+/// Store of user map routes. Raises <see cref="RoutesChanged"/> after any mutation. Clean-room reimplementation.
 /// </summary>
 public interface IRouteStore
 {

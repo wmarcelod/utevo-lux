@@ -13,7 +13,7 @@ namespace UtevoLux.Features.Map;
 /// Stitches each floor's 256x256 tiles into a single frozen <see cref="BitmapSource"/> off the
 /// UI thread, with a 3-entry LRU and in-flight de-duplication (concurrent requests for the same
 /// floor share one <see cref="Task"/>). The result is frozen so it can cross threads and bind
-/// straight into the UI. Ported faithfully from the original TibiaVision.
+/// straight into the UI.
 /// </summary>
 public class FloorImageCache
 {

@@ -1,8 +1,7 @@
 namespace UtevoLux.Features.Map;
 
 /// <summary>
-/// A single world position (x, y, floor z) with an optional spawn timer in seconds. Ported
-/// faithfully from the original TibiaVision. z is a Tibia floor index (0..15, 7 == ground).
+/// A single world position (x, y, floor z) with an optional spawn timer in seconds. Clean-room reimplementation. z is a Tibia floor index (0..15, 7 == ground).
 /// </summary>
 public readonly struct NpcPosition
 {

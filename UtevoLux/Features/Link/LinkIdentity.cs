@@ -5,7 +5,7 @@ using System.Text;
 namespace UtevoLux.Features.Link;
 
 /// <summary>
-/// Auth identity for the Link server in the clean-room fork. The original TibiaVision authenticated
+/// Auth identity for the Link server in the clean-room fork. The original tool authenticated
 /// with an activated license key + a HardwareIdService HWID; this fork has neither, so:
 ///   - the "licenseKey" slot carries a stable per-install <see cref="LinkSettings.ClientId"/> GUID, and
 ///   - the HWID is a deterministic, non-reversible hash of machine + user identifiers.

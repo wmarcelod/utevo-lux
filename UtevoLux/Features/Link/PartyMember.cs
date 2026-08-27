@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 namespace UtevoLux.Features.Link;
 
 /// <summary>
-/// One member of a TibiaVision Link party. <see cref="Status"/> raises change notifications for
+/// One member of a Utevo Link party. <see cref="Status"/> raises change notifications for
 /// both itself and the derived <see cref="StatusText"/> so the page list and the overlay update
 /// the coloured dot + label live when the server pushes a member_status event. Faithful port of
 /// the original <c>WindowReplicaApp.Models.PartyMember</c>.

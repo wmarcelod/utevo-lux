@@ -7,7 +7,7 @@ using UtevoLux.Core;
 namespace UtevoLux.Features.Link;
 
 /// <summary>
-/// The TibiaVision Link feature module: create/join a shared party by code and broadcast live
+/// The Utevo Link feature module: create/join a shared party by code and broadcast live
 /// presence, with a click-through status overlay. Discovered by reflection like every other
 /// <see cref="IFeatureModule"/>; sits in the core cluster (Order 25, between Lupa=20 and
 /// Timers=30) where the original placed it.
@@ -25,7 +25,7 @@ public sealed class LinkModule : IFeatureModule, IShutdownHook
     private LinkOverlayWindow? _overlay;
 
     public string Id => "link";
-    public string Title => "TibiaVision Link";
+    public string Title => "Utevo Link";
     public int Order => 25;
 
     public Geometry Icon =>

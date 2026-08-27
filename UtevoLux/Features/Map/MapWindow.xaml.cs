@@ -22,8 +22,7 @@ namespace UtevoLux.Features.Map;
 
 /// <summary>
 /// The TibiaMaps window: a pan/zoom minimap viewer with floor rail, pins, multi-floor routes,
-/// spawn clustering and type-ahead creature/NPC search. Ported faithfully from the original
-/// TibiaVision <c>MapWindow</c> (2953 lines), with three deliberate adaptations to the fork:
+/// spawn clustering and type-ahead creature/NPC search. Clean-room reimplementation. <c>MapWindow</c> (2953 lines), with three deliberate adaptations to the fork:
 ///   * toasts / confirms / name prompts go through the fork's <see cref="IAppServices"/>,
 ///     <see cref="ThemedMessageBox"/> and <see cref="ProfileNameDialog"/> (instead of the
 ///     original's ToastService / ThemedMessageBox.ShowConfirm / RenameRegionDialog);

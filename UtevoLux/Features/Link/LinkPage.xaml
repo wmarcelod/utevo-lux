@@ -15,10 +15,10 @@
 
         <!-- Header -->
         <StackPanel Grid.Row="0" Margin="0,0,0,12">
-            <TextBlock Text="TibiaVision Link" Style="{StaticResource Text.Title}"/>
+            <TextBlock Text="Utevo Link" Style="{StaticResource Text.Title}"/>
             <TextBlock Style="{StaticResource Text.Secondary}" FontSize="12" Margin="0,4,0,0"
                        TextWrapping="Wrap"
-                       Text="Junte-se a uma party para compartilhar seu status em tempo real. O relay do TibiaVision Link deve estar online."/>
+                       Text="Junte-se a uma party para compartilhar seu status em tempo real. O relay do Utevo Link deve estar online."/>
         </StackPanel>
 
         <!-- Body: setup OR party (toggled in code-behind) -->

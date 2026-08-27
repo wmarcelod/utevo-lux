@@ -17,7 +17,7 @@ namespace UtevoLux.Features.Obs;
 /// <summary>
 /// A candidate OBS/streaming window shown in the picker. Carries the raw window title (used to
 /// re-bind after a restart) and the owning process name, plus a combined <see cref="Display"/> that
-/// matches the original TibiaVision picker's "Title (process)" formatting.
+/// matches the original tool picker's "Title (process)" formatting.
 /// </summary>
 public sealed class ObsWindowItem
 {
@@ -50,7 +50,7 @@ public sealed class ObsPageViewModel : ViewModelBase
 {
     private const string RegionsKey = "obs.regions";
 
-    // Streaming-software keyword filter, ported from the original TibiaVision WindowSelectorDialog
+    // Streaming-software keyword filter, ported from the original tool WindowSelectorDialog
     // (localized "projector" spellings included) so the picker shows OBS/Streamlabs/XSplit/etc.
     private static readonly string[] StreamingKeywords =
     {

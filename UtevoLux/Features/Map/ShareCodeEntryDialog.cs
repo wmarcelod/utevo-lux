@@ -10,7 +10,7 @@ namespace UtevoLux.Features.Map;
 
 /// <summary>
 /// Chromeless themed prompt for importing a pin (<c>TV-</c>) or route (<c>TVR-</c>) share code.
-/// Ported from the original TibiaVision <c>ShareCodeEntryDialog</c> (Width 380), rebuilt in code
+/// Ported from the original tool <c>ShareCodeEntryDialog</c> (Width 380), rebuilt in code
 /// against the fork's theme tokens (blue accent). Decoding is delegated to
 /// <see cref="ShareCodeService"/> and bounds-checked against the current map.
 /// </summary>
@@ -71,7 +71,7 @@ public sealed class ShareCodeEntryDialog : Window
 
         stack.Children.Add(new TextBlock
         {
-            Text = "Paste a pin or route code from another TibiaVision user:",
+            Text = "Paste a pin or route code from another user:",
             Foreground = textSecondary,
             FontSize = 12,
             TextWrapping = TextWrapping.Wrap,

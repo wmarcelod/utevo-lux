@@ -12,7 +12,7 @@ namespace UtevoLux.Features.Map;
 /// Encodes/decodes shareable marker (<c>TV-</c>) and route (<c>TVR-</c>) codes. Markers are
 /// url-safe base64 JSON; routes are a compact zig-zag varint delta binary (v2) with a legacy
 /// JSON (v1) decode path. All decodes are bounds- and length-checked and return a typed
-/// success/error result. Ported faithfully from the original TibiaVision.
+/// success/error result.
 /// </summary>
 public static class ShareCodeService
 {

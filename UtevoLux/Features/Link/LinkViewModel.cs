@@ -12,7 +12,7 @@ using UtevoLux.ViewModels;
 namespace UtevoLux.Features.Link;
 
 /// <summary>
-/// Backs the TibiaVision Link page and the click-through overlay: connect + authenticate, create or
+/// Backs the Utevo Link page and the click-through overlay: connect + authenticate, create or
 /// join a party by code, and track live member presence. Faithful port of the original
 /// <c>WindowReplicaApp.ViewModels.LinkViewModel</c> — same commands, properties, events, and the
 /// auto-rejoin-with-backoff behaviour on an unexpected drop.
@@ -209,7 +209,7 @@ public sealed class LinkViewModel : INotifyPropertyChanged
                 }
                 else
                 {
-                    StatusMessage = "Desconectado do TibiaVision Link.";
+                    StatusMessage = "Desconectado do Utevo Link.";
                 }
             });
 
@@ -325,7 +325,7 @@ public sealed class LinkViewModel : INotifyPropertyChanged
 
             if (!IsInParty)
             {
-                StatusMessage = "Nao foi possivel reconectar ao TibiaVision Link. Tente entrar novamente.";
+                StatusMessage = "Nao foi possivel reconectar ao Utevo Link. Tente entrar novamente.";
                 _lastPartyCode = null;
             }
         }

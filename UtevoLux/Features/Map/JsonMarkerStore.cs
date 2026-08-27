@@ -9,9 +9,8 @@ namespace UtevoLux.Features.Map;
 /// <summary>
 /// JSON-file marker store with crash-safe writes (tmp -> copy current to .bak -> atomic move),
 /// falling back to the .bak on a corrupt/missing primary. Thread-safe. Defaults to
-/// <c>%APPDATA%\UtevoLux\markers.json</c> (was TibiaVision in the original); the MapWindow
-/// stage may inject a path built from <c>IAppServices.Settings.RootDirectory</c> instead. Ported
-/// faithfully from the original TibiaVision.
+/// <c>%APPDATA%\UtevoLux\markers.json</c> (renamed for this app); the MapWindow
+/// stage may inject a path built from <c>IAppServices.Settings.RootDirectory</c> instead. Clean-room reimplementation.
 /// </summary>
 public class JsonMarkerStore : IMarkerStore
 {

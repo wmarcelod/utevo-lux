@@ -150,7 +150,7 @@ public sealed class LinkOverlayWindow : Window
         _linkCard.Background = new SolidColorBrush(Color.FromArgb(a, 21, 24, 33));
 
         _headerText.Text = string.IsNullOrEmpty(_viewModel.PartyCode)
-            ? "TibiaVision Link"
+            ? "Utevo Link"
             : $"Party {_viewModel.PartyCode}";
 
         Opacity = 1.0;

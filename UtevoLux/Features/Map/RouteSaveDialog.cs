@@ -10,7 +10,7 @@ namespace UtevoLux.Features.Map;
 
 /// <summary>
 /// Chromeless themed prompt for naming a route before saving it. Ported from the original
-/// TibiaVision <c>RouteSaveDialog</c> (Width 340, single text box, max 40 chars), rebuilt in code
+/// the original tool <c>RouteSaveDialog</c> (Width 340, single text box, max 40 chars), rebuilt in code
 /// against the fork's theme tokens (blue accent) so it matches <see cref="ThemedMessageBox"/> and
 /// <see cref="UtevoLux.Features.Profiles.ProfileNameDialog"/>.
 /// </summary>

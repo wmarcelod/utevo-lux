@@ -7,7 +7,7 @@ using UtevoLux.Core;
 namespace UtevoLux.Features.Map;
 
 /// <summary>
-/// The TibiaMaps feature module. Like the original TibiaVision, the map lives in its OWN top-level
+/// The TibiaMaps feature module. Like the original tool, the map lives in its OWN top-level
 /// window kept as a singleton; the nav page (<see cref="MapLauncherPage"/>) is a launcher that
 /// opens/focuses it (and opens it on first navigation). A global Ctrl+Alt+M hotkey shows/hides it.
 ///

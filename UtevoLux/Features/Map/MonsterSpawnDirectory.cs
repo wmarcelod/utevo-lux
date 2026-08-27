@@ -8,7 +8,7 @@ namespace UtevoLux.Features.Map;
 /// <summary>
 /// Searchable directory of monster spawns, decoded from <c>Resources/map/monster_spawns.dat</c>
 /// via <see cref="SpawnDataCodec"/>. Search ranks exact &gt; prefix &gt; substring, each block
-/// alphabetical. Ported faithfully from the original TibiaVision.
+/// alphabetical.
 /// </summary>
 public class MonsterSpawnDirectory
 {

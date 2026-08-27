@@ -10,7 +10,7 @@ namespace UtevoLux.Features.Map;
 /// <summary>
 /// Searchable directory of NPCs loaded from <c>Resources/map/npcs.json</c>. Each entry accepts
 /// either a <c>p</c> array of [x,y,z] triples or a single x/y/z. Search ranks exact &gt; prefix
-/// &gt; substring, each block alphabetical. Ported faithfully from the original TibiaVision.
+/// &gt; substring, each block alphabetical.
 /// </summary>
 public class NpcDirectory
 {

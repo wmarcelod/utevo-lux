@@ -10,8 +10,7 @@ namespace UtevoLux.Features.Map;
 /// <summary>
 /// Resolves creature/NPC name -> slug -> <c>Resources/{creatures|npcs}/{slug}.gif</c>, loading
 /// each with OnLoad + Freeze so it is safe to reuse across threads/renders. Results are memoized
-/// (including negative/null misses) so a missing sprite is looked up on disk only once. Ported
-/// faithfully from the original TibiaVision.
+/// (including negative/null misses) so a missing sprite is looked up on disk only once. Clean-room reimplementation.
 /// </summary>
 public static class SpriteProvider
 {

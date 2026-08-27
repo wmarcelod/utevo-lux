@@ -8,7 +8,7 @@ using UtevoLux.UI;
 namespace UtevoLux.Features.Link;
 
 /// <summary>
-/// The TibiaVision Link page: display-name + create/join-by-code setup, the in-party view (code,
+/// The Utevo Link page: display-name + create/join-by-code setup, the in-party view (code,
 /// copyable, live member list), and the overlay controls (lock, scale, opacity, disconnect-cue
 /// volume). Built once and kept alive by the module (visibility-toggled on nav). Faithful port of
 /// the original <c>WindowReplicaApp.Views.LinkPageControl</c>, restyled with the fork theme.

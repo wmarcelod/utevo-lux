@@ -17,7 +17,7 @@
     <!-- PerMonitorV2 DPI awareness declared in app.manifest so GetDpiForWindow and the
          DWM thumbnail rect math stay consistent across mixed-DPI monitors. -->
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <!-- Distinct UtevoLux exe icon (blue location/GPS glyph), NOT the original TibiaVision
+    <!-- Distinct UtevoLux exe icon (blue location/GPS glyph), NOT the original tool
          icon. Embedded into the exe so Explorer/taskbar show the fork's own identity; the WPF
          window/tray icon is the same Assets/icon.ico loaded in App.xaml.cs. -->
     <ApplicationIcon>Assets\icon.ico</ApplicationIcon>
@@ -35,7 +35,7 @@
     <PackageReference Include="NAudio" Version="2.2.1" />
   </ItemGroup>
 
-  <!-- Bundled image assets copied from the original TibiaVision (icon.ico, splash_logo.png,
+  <!-- Bundled image assets copied from the original tool (icon.ico, splash_logo.png,
        tibia48.png). Embedded as WPF <Resource> so they resolve via
        pack://application:,,,/Assets/<name>. Remove from the default None glob first so the
        SDK does not report duplicate items. -->
@@ -45,7 +45,7 @@
   </ItemGroup>
 
   <!-- TibiaMaps runtime assets (minimap tiles, creature/npc gifs, monster_spawns.dat + json),
-       copied from the installed TibiaVision into Resources\ (see Resources\README.md). Marked as
+       copied from the installed the original tool into Resources\ (see Resources\README.md). Marked as
        Content with PreserveNewest so the built app has Resources\minimap etc. next to the exe,
        matching the original's AppDomain.BaseDirectory\Resources lookup. These ~3300 binary files
        live in the working dir but are .gitignored; the glob still picks them up at build time.

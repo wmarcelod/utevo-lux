@@ -6,7 +6,7 @@ namespace UtevoLux.Features.Obs;
 /// <summary>
 /// The one piece of behavior that makes an OBS mirror different from a normal mirror: an AGGRESSIVE
 /// always-on-top re-assert that beats a capture tool's z-order. Ported 1:1 from the original
-/// TibiaVision <c>WindowHelper.SetWindowAlwaysOnTopAggressive</c> — a capture/projector window
+/// the original tool <c>WindowHelper.SetWindowAlwaysOnTopAggressive</c> — a capture/projector window
 /// constantly fights for the top of the topmost band, so a plain <c>Topmost=true</c> is not enough;
 /// the mirror must slam itself back to the very top periodically (see <see cref="ObsMirrorWindow"/>'s
 /// ~2s timer).

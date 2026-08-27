@@ -7,7 +7,7 @@ namespace UtevoLux.Views;
 /// <summary>
 /// The ~2s startup splash shown before the shell. App shows it, waits, brings up the shell behind
 /// it, then calls <see cref="FadeOutAndClose"/> to dissolve onto the shell (mirrors the original
-/// TibiaVision startup transition). The dot pulse animation lives in XAML.
+/// the original tool startup transition). The dot pulse animation lives in XAML.
 /// </summary>
 public partial class SplashWindow : Window
 {

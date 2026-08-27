@@ -4,8 +4,7 @@ namespace UtevoLux.Features.Map;
 
 /// <summary>
 /// A user-placed map pin: world position, icon index, and a short description. Persisted by
-/// <see cref="JsonMarkerStore"/> and shareable via <see cref="ShareCodeService"/>. Ported
-/// faithfully from the original TibiaVision.
+/// <see cref="JsonMarkerStore"/> and shareable via <see cref="ShareCodeService"/>. Clean-room reimplementation.
 /// </summary>
 public class MapMarker
 {

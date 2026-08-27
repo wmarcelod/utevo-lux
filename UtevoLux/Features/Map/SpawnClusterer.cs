@@ -7,7 +7,7 @@ namespace UtevoLux.Features.Map;
 /// <summary>
 /// Buckets spawn positions into a uniform world-space grid (cell size in world px) so a dense
 /// spawn list collapses into O(n) clusters for rendering. Each cluster carries its member
-/// positions and averaged center. Ported faithfully from the original TibiaVision.
+/// positions and averaged center.
 /// </summary>
 public static class SpawnClusterer
 {

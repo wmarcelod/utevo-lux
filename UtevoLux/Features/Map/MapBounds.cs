@@ -3,7 +3,7 @@ namespace UtevoLux.Features.Map;
 /// <summary>
 /// World-pixel bounds of the stitched minimap, derived from the tile index. Tiles are 256x256
 /// world pixels; bounds are [Min, MaxExclusive) so <see cref="Width"/>/<see cref="Height"/> give
-/// the exact size of the stitched floor bitmap. Ported faithfully from the original TibiaVision.
+/// the exact size of the stitched floor bitmap.
 /// </summary>
 public readonly struct MapBounds
 {

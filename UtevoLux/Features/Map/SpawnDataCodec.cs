@@ -14,7 +14,7 @@ namespace UtevoLux.Features.Map;
 /// Codec for the packed monster-spawn dataset (<c>Resources/map/monster_spawns.dat</c>). The on-disk
 /// container is AES-256-CBC (PKCS7, IV prepended) over gzip over a compact binary "TVSP" record
 /// stream. The AES key is derived from three embedded 16-byte constants (see <see cref="BuildKey"/>).
-/// Ported faithfully from the original TibiaVision so the copied .dat decodes byte-for-byte; reuse
+/// Clean-room reimplementation. so the copied .dat decodes byte-for-byte; reuse
 /// of the original decode path is sanctioned for this personal-use fork.
 /// Also parses the JSON exclusion / monster-locations formats used to build the .dat.
 /// </summary>

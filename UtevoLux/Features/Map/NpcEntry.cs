@@ -4,7 +4,7 @@ namespace UtevoLux.Features.Map;
 
 /// <summary>
 /// A named searchable map entity (NPC, rare creature, or monster-spawn group) with one or more
-/// world positions. Ported faithfully from the original TibiaVision. Defaults keep the type
+/// world positions. Defaults keep the type
 /// warning-free under the fork's Nullable-enable; every producer sets Name/Positions explicitly.
 /// </summary>
 public class NpcEntry

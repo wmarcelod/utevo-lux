@@ -14,7 +14,7 @@ namespace UtevoLux.Features.Map;
 /// (#FF3FA9F5) instead of the original's orange, per the fork's "accent stays blue, never orange"
 /// rule. NOTE: the Icons/MapMarkers folder is NOT part of the four asset folders copied by the
 /// data stage, so unless it is copied separately every marker renders as the blue fallback dot.
-/// Everything else is ported faithfully from the original TibiaVision.
+/// 
 /// </summary>
 public static class MarkerIconProvider
 {

@@ -10,7 +10,7 @@ namespace UtevoLux.Features.Obs;
 
 /// <summary>
 /// The "Ferramentas OBS" feature module: crop areas from OBS projector windows for streaming
-/// (the original TibiaVision "Crop areas from OBS projector windows for streaming"). It reuses the
+/// (the original tool "Crop areas from OBS projector windows for streaming"). It reuses the
 /// Mirror feature's DWM host window and crop tooling wholesale (<see cref="ObsMirrorWindow"/> is the
 /// fork's <c>MirrorWindow</c> plus an aggressive always-on-top re-assert), so an OBS crop behaves
 /// exactly like a normal mirror but stays pinned above the capture tool's projector.

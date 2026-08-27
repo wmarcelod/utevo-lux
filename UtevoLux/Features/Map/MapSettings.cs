@@ -2,8 +2,7 @@ namespace UtevoLux.Features.Map;
 
 /// <summary>
 /// Persisted window/UX state for the map feature (window rect + scale, search toggles, pins
-/// panel, and the show/hide hotkey). Loaded/saved by <see cref="MapSettingsService"/>. Ported
-/// faithfully from the original TibiaVision.
+/// panel, and the show/hide hotkey). Loaded/saved by <see cref="MapSettingsService"/>. Clean-room reimplementation.
 /// </summary>
 public class MapSettings
 {

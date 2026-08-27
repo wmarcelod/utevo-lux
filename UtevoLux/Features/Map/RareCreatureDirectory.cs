@@ -11,7 +11,7 @@ namespace UtevoLux.Features.Map;
 /// Searchable directory of rare creatures, merged from the auto-generated
 /// <c>Resources/map/rare_creatures.json</c> and a hand-curated <c>rare_creatures_manual.json</c>
 /// (later files override by name). Search ranks exact &gt; prefix &gt; substring, each block
-/// alphabetical. Ported faithfully from the original TibiaVision.
+/// alphabetical.
 /// </summary>
 public class RareCreatureDirectory
 {

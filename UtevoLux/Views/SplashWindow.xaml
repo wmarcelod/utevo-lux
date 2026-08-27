@@ -1,5 +1,5 @@
 <!--
-  Startup splash. Mirrors the original TibiaVision splash (WindowReplicaApp.App.CreateSplashWindow):
+  Startup splash. Mirrors the original tool splash (WindowReplicaApp.App.CreateSplashWindow):
   a rounded, glowing card with the logo, the wordmark, a "loading" line, three pulsing dots and a
   multilingual greeting. Recoloured to the fork's BLUE accent; the logo raster is the original asset.
   Shown for ~2s by App, then faded out onto the shell.

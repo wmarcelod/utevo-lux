@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace UtevoLux.Features.Link;
 
 /// <summary>
-/// The TibiaVision Link transport: a <see cref="ClientWebSocket"/> to the Link relay that speaks a
+/// The Utevo Link transport: a <see cref="ClientWebSocket"/> to the Link relay that speaks a
 /// small JSON protocol — auth (licenseKey + hwid + name), create_party(durationMinutes),
 /// join_party(code), leave_party — and receives live party pushes (party_created / party_joined /
 /// member_joined / member_left / member_status / party_expired). Faithful port of the original
@@ -22,7 +22,7 @@ namespace UtevoLux.Features.Link;
 /// </summary>
 public sealed class LinkClientService : IDisposable
 {
-    private const string LinkUrl = "wss://link.tibiavision.com";
+    private const string LinkUrl = "wss://link.marcelod.com.br";
 
     private ClientWebSocket? _socket;
     private CancellationTokenSource? _cts;
@@ -58,7 +58,7 @@ public sealed class LinkClientService : IDisposable
         }
         catch
         {
-            AuthFailed?.Invoke("Nao foi possivel acessar o TibiaVision Link. Verifique sua conexao e tente novamente.");
+            AuthFailed?.Invoke("Nao foi possivel acessar o Utevo Link. Verifique sua conexao e tente novamente.");
             return false;
         }
 
@@ -75,7 +75,7 @@ public sealed class LinkClientService : IDisposable
 
         if (await Task.WhenAny(_authTcs.Task, Task.Delay(TimeSpan.FromSeconds(10.0))) != _authTcs.Task)
         {
-            AuthFailed?.Invoke("O TibiaVision Link expirou. Tente novamente.");
+            AuthFailed?.Invoke("O Utevo Link expirou. Tente novamente.");
             return false;
         }
 

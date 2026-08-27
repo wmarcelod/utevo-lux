@@ -6,8 +6,7 @@ namespace UtevoLux.Features.Map;
 
 /// <summary>
 /// Loads/saves <see cref="MapSettings"/> as JSON at <c>%APPDATA%\UtevoLux\map_settings.json</c>
-/// (was TibiaVision in the original). WindowScale is clamped to [0.6, 1.0] on load. Ported
-/// faithfully from the original TibiaVision.
+/// (renamed for this app). WindowScale is clamped to [0.6, 1.0] on load. Clean-room reimplementation.
 /// </summary>
 public static class MapSettingsService
 {

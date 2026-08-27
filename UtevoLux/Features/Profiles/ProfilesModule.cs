@@ -6,7 +6,7 @@ using UtevoLux.Core;
 namespace UtevoLux.Features.Profiles;
 
 /// <summary>
-/// The Profiles ("Perfis") feature module — the fork's version of the original TibiaVision
+/// The Profiles ("Perfis") feature module — the fork's version of the original tool
 /// Profiles tool (Manage Profiles). Auto-discovered by <see cref="ModuleCatalog"/> (public
 /// parameterless ctor + <see cref="IFeatureModule"/>), so it drops in with no shell/csproj edits.
 ///

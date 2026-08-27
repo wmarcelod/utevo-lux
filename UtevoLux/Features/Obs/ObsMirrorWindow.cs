@@ -11,7 +11,7 @@ namespace UtevoLux.Features.Obs;
 /// <summary>
 /// An OBS-bound mirror. It IS the fork's <see cref="MirrorWindow"/> — the DWM live-thumbnail host,
 /// zoom/opacity/right-click-passthrough, the single context menu, aspect-lock resize, everything —
-/// reused unchanged by subclassing. The only thing added is the original TibiaVision "OBS mirror"
+/// reused unchanged by subclassing. The only thing added is the original tool "OBS mirror"
 /// behavior: an AGGRESSIVE always-on-top re-assert (slam to top now, then again every ~2s) so the
 /// mirror stays above the capture tool's projector window, which itself keeps grabbing the top of
 /// the z-order.

@@ -5,8 +5,7 @@ namespace UtevoLux.Features.Map;
 
 /// <summary>
 /// A named ordered list of waypoints (max 100). Persisted by <see cref="JsonRouteStore"/> and
-/// shareable via <see cref="ShareCodeService"/> (TVR- codes). Ported faithfully from the
-/// original TibiaVision.
+/// shareable via <see cref="ShareCodeService"/> (TVR- codes). Clean-room reimplementation.
 /// </summary>
 public class MapRoute
 {
