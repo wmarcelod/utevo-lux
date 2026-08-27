@@ -19,13 +19,20 @@ namespace OpenTibiaVision.Features.Mirror;
 /// an overlay is delivered too (that is what keeps interacting with our own windows from hiding them,
 /// and lets a hidden mirror re-appear when the fork regains focus).
 ///
-/// One process-wide out-of-context WinEvent hook feeds a HashSet of watched HWNDs. The callback
-/// arrives on the thread that installed the hook (the UI thread), so subscribers may touch WPF
-/// directly. The debounce timer runs on that same dispatcher.
+/// One process-wide out-of-context WinEvent hook feeds a refcounted map of watched HWNDs
+/// (Dictionary&lt;HWND,int&gt;): the same source hwnd can back several mirror rows, so each
+/// <see cref="Watch"/> increments and each <see cref="Unwatch"/> decrements that hwnd's count,
+/// and a source is only truly dropped when its count reaches zero. Without the refcount, a second
+/// row watching an already-watched hwnd would be a silent no-op and the first row's Unwatch would
+/// tear the shared hooks down while the second row still needs them. The callback arrives on the
+/// thread that installed the hook (the UI thread), so subscribers may touch WPF directly. The
+/// debounce timer runs on that same dispatcher.
 /// </summary>
 public sealed class SourceWindowWatcher : IDisposable
 {
-    private readonly HashSet<IntPtr> _watched = new();
+    // hwnd -> number of live subscribers watching it. Hooks are process-wide, installed while at
+    // least one distinct hwnd is watched (map non-empty) and released when the last one drops.
+    private readonly Dictionary<IntPtr, int> _watched = new();
     private readonly DispatcherTimer _debounce;
     private readonly MirrorInterop.WinEventProc _proc; // kept alive so the GC won't collect it
 
@@ -51,13 +58,34 @@ public sealed class SourceWindowWatcher : IDisposable
         if (hwnd == IntPtr.Zero || _disposed)
             return;
 
-        if (_watched.Add(hwnd) && _watched.Count == 1)
+        if (_watched.TryGetValue(hwnd, out int count))
+        {
+            // Already watched by another row: bump its refcount, hooks stay as-is.
+            _watched[hwnd] = count + 1;
+            return;
+        }
+
+        // First subscriber for this hwnd; if it is the first watched hwnd overall, install hooks.
+        _watched[hwnd] = 1;
+        if (_watched.Count == 1)
             EnsureHooks();
     }
 
     public void Unwatch(IntPtr hwnd)
     {
-        if (_watched.Remove(hwnd) && _watched.Count == 0)
+        if (!_watched.TryGetValue(hwnd, out int count))
+            return;
+
+        if (count > 1)
+        {
+            // Other rows still watch this hwnd: just decrement, keep the hooks.
+            _watched[hwnd] = count - 1;
+            return;
+        }
+
+        // Last subscriber for this hwnd; drop it and release hooks once nothing is watched.
+        _watched.Remove(hwnd);
+        if (_watched.Count == 0)
             ReleaseHooks();
     }
 
@@ -114,7 +142,7 @@ public sealed class SourceWindowWatcher : IDisposable
         }
 
         // Presence events (minimize/restore/destroy/hide) only matter for the sources we watch.
-        if (hwnd == IntPtr.Zero || !_watched.Contains(hwnd))
+        if (hwnd == IntPtr.Zero || !_watched.ContainsKey(hwnd))
             return;
 
         SignalDebounced();

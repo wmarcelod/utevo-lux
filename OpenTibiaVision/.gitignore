@@ -5,3 +5,6 @@ Resources/minimap/
 Resources/creatures/
 Resources/npcs/
 Resources/map/
+# The 20 marker_NN.png pin icons, copied from the installed TibiaVision's
+# Resources/Icons/MapMarkers. Content-copied to output by the Resources/** glob; not committed.
+Resources/Icons/MapMarkers/

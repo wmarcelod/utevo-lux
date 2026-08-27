@@ -6,8 +6,11 @@ using System.Windows.Threading;
 namespace OpenTibiaVision.Features.Audio;
 
 /// <summary>
-/// Always-available fallback backend built on the WPF <see cref="MediaPlayer"/>. MediaPlayer is
-/// a <see cref="DispatcherObject"/>, so every operation is marshalled onto the UI dispatcher
+/// Always-available fallback backend built on the WPF <see cref="MediaPlayer"/>, used only when
+/// the NAudio mixer fails to initialise. It is SINGLE-VOICE (<see cref="SupportsConcurrentMixing"/>
+/// is false): a new <see cref="Play"/> replaces whatever was playing, so overlapping alerts fall
+/// back to the engine's one-at-a-time queue rather than mixing. MediaPlayer is a
+/// <see cref="DispatcherObject"/>, so every operation is marshalled onto the UI dispatcher
 /// captured at construction; the <see cref="SoundEngine"/> worker thread calls these freely.
 /// Looping is realized by re-playing on <c>MediaEnded</c> (a ~gapless re-arm), which the engine
 /// caps with its own watchdog. <see cref="IsBusy"/> is a volatile flag flipped on the dispatcher
@@ -15,6 +18,9 @@ namespace OpenTibiaVision.Features.Audio;
 /// </summary>
 public sealed class MediaPlayerSoundBackend : ISoundBackend
 {
+    // One voice, so one shared handle: any Stop(handle) simply stops that single voice.
+    private static readonly IPlaybackHandle Voice = new SingleVoiceHandle();
+
     private readonly Dispatcher _dispatcher;
     private MediaPlayer? _player;
     private volatile bool _busy;
@@ -28,12 +34,14 @@ public sealed class MediaPlayerSoundBackend : ISoundBackend
 
     public string Name => "WPF MediaPlayer";
 
+    public bool SupportsConcurrentMixing => false;
+
     public bool IsBusy => _busy;
 
-    public void Play(SoundRequest request)
+    public IPlaybackHandle Play(SoundRequest request)
     {
         if (_disposed || string.IsNullOrEmpty(request.FilePath))
-            return;
+            return NullPlaybackHandle.Instance;
 
         _busy = true;
         _loop = request.Loop;
@@ -56,7 +64,12 @@ public sealed class MediaPlayerSoundBackend : ISoundBackend
                 _loop = false;
             }
         });
+
+        return Voice;
     }
+
+    // Single voice: stopping "this handle" is the same as stopping everything.
+    public void Stop(IPlaybackHandle handle) => Stop();
 
     public void Stop()
     {
@@ -138,4 +151,7 @@ public sealed class MediaPlayerSoundBackend : ISoundBackend
         }
         catch { /* dispatcher gone during shutdown */ }
     }
+
+    /// <summary>Identity handle for this backend's single voice.</summary>
+    private sealed class SingleVoiceHandle : IPlaybackHandle { }
 }

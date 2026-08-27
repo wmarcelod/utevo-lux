@@ -200,7 +200,7 @@ public static class ShareCodeService
         }
         if (payload.V != 1)
         {
-            return ShareCodeResult.Fail("This code needs a newer version of TibiaVision.");
+            return ShareCodeResult.Fail("This code needs a newer version of OpenTibiaVision.");
         }
         if (!payload.X.HasValue || !payload.Y.HasValue || !payload.Z.HasValue || !payload.I.HasValue)
         {
@@ -340,7 +340,7 @@ public static class ShareCodeService
         }
         if (routePayload.V != 1)
         {
-            return RouteCodeResult.Fail("This code needs a newer version of TibiaVision.");
+            return RouteCodeResult.Fail("This code needs a newer version of OpenTibiaVision.");
         }
         if (routePayload.P == null || routePayload.P.Count < 2 || routePayload.P.Count > 100)
         {
