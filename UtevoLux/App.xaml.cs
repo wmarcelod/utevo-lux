@@ -70,8 +70,44 @@ public partial class App : Application
             shell.Show();
 
             splash.FadeOutAndClose();
+
+            // Best-effort: check GitHub for a newer release once per launch.
+            CheckForUpdatesAsync();
         };
         timer.Start();
+    }
+
+    /// <summary>
+    /// Checks GitHub Releases; if a newer version exists, offers to download + run the installer.
+    /// Runs on the UI thread (awaits resume on the dispatcher), fire-and-forget, never blocks startup.
+    /// </summary>
+    private async void CheckForUpdatesAsync()
+    {
+        if (_services == null)
+            return;
+
+        UpdateService.UpdateInfo? info = await UpdateService.CheckAsync();
+        if (info == null)
+            return;
+
+        string current = UpdateService.CurrentVersion().ToString(3);
+        bool accept = _services.Confirm(
+            "Atualizacao disponivel",
+            $"Utevo Lux {info.Tag} esta disponivel (voce tem a v{current}).\n\nBaixar e instalar agora?");
+        if (!accept)
+            return;
+
+        _services.ShowToast("Baixando atualizacao...");
+        bool started = await UpdateService.DownloadAndLaunchAsync(info);
+        if (started)
+        {
+            Shutdown(0); // exit so the installer can replace files and relaunch
+        }
+        else
+        {
+            _services.Info("Atualizacao", "Nao foi possivel baixar a atualizacao agora. Vou abrir a pagina de releases.");
+            UpdateService.OpenReleasesPage();
+        }
     }
 
     private static ImageSource? LoadAppIcon()
